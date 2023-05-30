@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "dynrender-skia"
+version = "0.1.0"
+description = "使用skia-python将BiliBili动态渲染为图片"
+authors = ["DMC <lzxder@outlook.com>"]
+license = "GNU GPLv3"
+readme = "README.md"
+packages = [{include = "dynrender_skia"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+dynamicadaptor = "^0.4.3"
+skia-python = "^87.5"
+fonttools = "^4.39.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

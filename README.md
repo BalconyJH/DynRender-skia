@@ -3,7 +3,7 @@
 
 # 注意
 
-Linux用户可能会出现以下报错
+Linux用户在导入skia-python包时可能会遇到以下报错
 ```bash
 libGL.so.1: cannot open shared object file: No such file or directory
 ```

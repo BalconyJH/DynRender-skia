@@ -21,7 +21,7 @@ class DynRender:
             font_style (str, optional): font style like "Normal、Bold、Italic". Defaults to "normal".
             static_path (str, optional): static file path,must be absolute path. Defaults to None.
         """
-        static_path = MakeStaticFile(static_path).check_cache_file()
+        static_path = MakeStaticFile(static_path).check_cache_file
     
     
     

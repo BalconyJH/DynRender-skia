@@ -9,20 +9,24 @@
 """
 
 
-from os import path, getcwd,makedirs
+from os import path, getcwd, makedirs
 from loguru import logger
 from typing import Optional
 from zipfile import ZipFile
-import skia
-
-
-
+try:
+    import skia
+except ImportError as e:
+    logger.error(e)
+    logger.warning(
+        "please install dependence: \n\n Ubuntu: apt install libgl1-mesa-glx \n\n ArchLinux: pacman -S libgl \n\n Centos: yum install mesa-libGL -y")
+from .DynStyle import PolyStyle
 
 
 class MakeStaticFile:
     def __init__(self, data_path: Optional[str] = None) -> None:
         self.data_path: str = data_path
 
+    @property
     def check_cache_file(self) -> None:
         """查询缓存文件是否存在"""
         # 查询是否有data_path参数
@@ -53,7 +57,7 @@ class MakeStaticFile:
                     "未检测到static目录", "使用用户传入路径创建static目录中...", current_dir
                 )
                 file.extractall(self.data_path)
-                logger.info("static目录创建成功")      
+                logger.info("static目录创建成功")
         return static_path
 
     def unzip_file(self, arg0, arg1, current_dir):
@@ -63,14 +67,18 @@ class MakeStaticFile:
 
 
 class SetDynStyle:
-    def __init__(self,font_family:str,font_style:str) -> None:
+    def __init__(self, font_family: str, font_style: str) -> None:
         self.font_family = font_family
         self.font_style = font_style
-    
-    def get_style(self):
-        pass
-    
-    def get_font_style(self):
-        style_map = {"Normal":skia.FontStyle().Normal(),"Bold":skia.FontStyle().Bold(),"Italic":skia.FontStyle().Italic(),"BoldItalic":skia.FontStyle().BoldItalic()}
-        return style_map.get(self.font_style,skia.FontStyle().Normal())
+
+    def set_style(self):
         
+        cfg = PolyStyle()
+        cfg.font.font_family = self.font_family
+        cfg.font.font_style = self.get_font_style()
+        
+
+    def get_font_style(self):
+        style_map = {"Normal": skia.FontStyle().Normal(), "Bold": skia.FontStyle().Bold(
+        ), "Italic": skia.FontStyle().Italic(), "BoldItalic": skia.FontStyle().BoldItalic()}
+        return style_map.get(self.font_style, skia.FontStyle().Normal())

@@ -21,3 +21,8 @@ apt install libgl1
 ```bash
 pacman -S libgl
 ```
+> centos用户
+```bash
+yum install mesa-libGL -Y
+
+```

@@ -13,7 +13,7 @@ libGL.so.1: cannot open shared object file: No such file or directory
 
 ```bash
 
-apt install libgl1-mesa-glx
+apt install libgl1
 
 ```
 > ArchLinux用户

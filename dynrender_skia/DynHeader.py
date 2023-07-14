@@ -27,27 +27,46 @@ class BiliHeader:
             surface = skia.Surface(1080, 400)
             self.canvas = surface.getCanvas()
             self.canvas.clear(skia.Color(*self.style.color.backgroud.normal))
-            await asyncio.gather(self.paste_logo(),
+            result = await asyncio.gather(self.paste_logo(),
                                  self.draw_name(),
-                                 self.draw_pub_time())
-
+                                 self.draw_pub_time(),
+                                 self.get_face_and_pendant(True),
+                                 self.get_face_and_pendant()
+                                 )
+            await self.past_face(result[3])
+            await self.paste_pendant(result[4])
+            await self.paste_vip()
+            
         except Exception:
             logger.exception("Error")
             return None
-    async def past_face(self):
+    
+    async def paste_pendant(self,pendant):
+        if pendant is not None:
+            pendant = pendant.resize(190, 190)
+            await self.paste(pendant, (10, 210))
+    
+    async def paste_vip(self):
         pass
+        
     
+    async def past_face(self,face):
+        face = await self.get_face_and_pendant(True)
+        if face:
+            face = await self.circle_face(face, 120)
+            await self.paste(face,(45,245))
     
-    async def get_face_and_pendant(self,img_type:bool=True):
+    async def get_face_and_pendant(self,img_type:bool=False):
         if img_type:
             img_name = f"{self.message.mid}.webp"
-
             img_url = f"{self.message.face}@240w_240h_1c_1s.webp"
             img_path = path.join(self.face_path, img_name)
-        else:
+        elif self.message.pendant and self.message.pendant.image:
             img_name = f"{self.message.pendant.pid}.png"
             img_url = f"{self.message.pendant.image}@360w_360h.webp"
             img_path = path.join(self.pendant_path, img_name)
+        else:
+            return None
         if path.exists(img_path) and (not img_type or time() - int(path.getmtime(img_path)) <= 43200):
             return skia.Image.open(img_path)
         img = await self.get_pictures(img_url)
@@ -55,6 +74,7 @@ class BiliHeader:
             img.save(img_path)
             return img
         return None
+
     
     async def get_pictures(self,url):
         try:
@@ -106,7 +126,7 @@ class BiliHeader:
 
         logo = skia.Image.open(path.join(self.src_path, "bilibili.png")).convert(
             alphaType=skia.AlphaType.kPremul_AlphaType).resize(231, 105)
-        await self.paste(self.canvas, logo, (433, 20))
+        await self.paste(logo, (433, 20))
 
     async def draw_name(self):
         # 如果是大会员的话
@@ -147,10 +167,9 @@ class BiliHeader:
                 self.canvas.drawTextBlob(blob, offset, y, paint)
                 offset += font.measureText(i)
 
-    async def paste(self, image, position) -> None:
+    async def paste(self, image, position:tuple) -> None:
         x, y = position
         img_height = image.dimensions().fHeight
         img_width = image.dimensions().fWidth
         rec = skia.Rect.MakeXYWH(x, y, img_width, img_height)
-        self.canvas.drawImageRect(image, skia.Rect(
-            0, 0, img_width, img_height), rec)
+        self.canvas.drawImageRect(image, skia.Rect(0, 0, img_width, img_height), rec)

@@ -9,8 +9,10 @@
 '''
 
 
-from .DynConfig import MakeStaticFile
-from typing import Union
+from dynamicadaptor.Message import RenderMessage
+
+from .DynConfig import MakeStaticFile, SetDynStyle
+
 
 class DynRender:
     def __init__(self,font_family:str="Noto Sans CJK SC",font_style:str = "Normal", static_path:str = None) -> None:
@@ -21,7 +23,9 @@ class DynRender:
             font_style (str, optional): font style like "Normal、Bold、Italic、BoldItalic". Defaults to "Normal".
             static_path (str, optional): static file path,must be absolute path. Defaults to None.
         """
-        static_path = MakeStaticFile(static_path).check_cache_file
+        self.static_path = MakeStaticFile(static_path).check_cache_file
+        self.style = SetDynStyle(font_family,font_style).set_style
     
-    
+    async def run(self,message:RenderMessage):
+        tasks = []
     

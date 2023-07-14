@@ -6,17 +6,19 @@
 @Version :   1.0
 @Desc    :   None
 """
-from os import path, getcwd, makedirs
-from loguru import logger
+from os import getcwd, makedirs, path
 from typing import Optional
 from zipfile import ZipFile
+import json
+from loguru import logger
+
 try:
     import skia
 except ImportError as e:
     logger.error(e)
     logger.warning(
         "Missing dependent files \n\n please install dependence: \n\n ---------------------------------------\n\n Ubuntu: apt install libgl1-mesa-glx \n\n ArchLinux: pacman -S libgl \n\n Centos: yum install mesa-libGL -y \n\n---------------------------------------")
-from DynStyle import PolyStyle
+from .DynStyle import PolyStyle
 
 
 class MakeStaticFile:
@@ -59,6 +61,21 @@ class MakeStaticFile:
                     self.data_path
                 )
                 logger.info("static目录创建成功")
+        font_cache_path  = path.join(static_path,"font_family.json")
+        if not path.exists(font_cache_path):
+            logger.info("创建系统安装的所有字体的名称列表文件")
+            font_list = list(skia.FontMgr())
+            with open(font_cache_path,"w")as f:
+                f.write(json.dumps(font_list))
+            logger.info("字体列表文件创建完成")
+            logger.info(f"文件存储于：{font_cache_path}")
+        else:
+            new_font_list = list(skia.FontMgr())
+            with open(font_cache_path,"w+")as f:
+                old_font_list = json.loads(f.read())
+                if new_font_list != old_font_list:
+                    f.write(json.dumps(new_font_list))
+                
         return static_path
 
     def unzip_file(self, arg0, arg1, src_path,target_path):
@@ -115,6 +132,6 @@ class SetDynStyle:
         ), "Italic": skia.FontStyle().Italic(), "BoldItalic": skia.FontStyle().BoldItalic()}
         return style_map.get(self.font_style, skia.FontStyle().Normal())
 
-if __name__ == "__main__":
-    a = SetDynStyle("Noto Sans CJK SC","Normal").set_style
-    print(a.color.backgroud.repost)
+# if __name__ == "__main__":
+#     a = SetDynStyle("Noto Sans CJK SC","Normal").set_style
+#     print(a.color.backgroud.repost)

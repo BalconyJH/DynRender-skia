@@ -36,6 +36,7 @@ class BiliText:
             if dyn_text.topic is not None:
                 pass
             if dyn_text.text:
+
                 tasks.append(self.draw_text())
             await asyncio.gather(*tasks)
         except Exception as e:

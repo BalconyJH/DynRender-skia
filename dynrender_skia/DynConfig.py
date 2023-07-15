@@ -66,16 +66,19 @@ class MakeStaticFile:
             logger.info("创建系统安装的所有字体的名称列表文件")
             font_list = list(skia.FontMgr())
             with open(font_cache_path,"w")as f:
-                f.write(json.dumps(font_list))
+                f.write(json.dumps(font_list,ensure_ascii=False))
             logger.info("字体列表文件创建完成")
             logger.info(f"文件存储于：{font_cache_path}")
         else:
             new_font_list = list(skia.FontMgr())
             with open(font_cache_path,"w+")as f:
-                old_font_list = json.loads(f.read())
-                if new_font_list != old_font_list:
-                    f.write(json.dumps(new_font_list))
-                
+                if file_content := f.read():
+                    old_font_list = json.loads(file_content)
+                    if new_font_list != old_font_list:
+                        f.write(json.dumps(new_font_list,ensure_ascii=False))
+                else:
+                    f.write(json.dumps(new_font_list,ensure_ascii=False))
+
         return static_path
 
     def unzip_file(self, arg0, arg1, src_path,target_path):

@@ -12,7 +12,7 @@
 from dynamicadaptor.Message import RenderMessage
 
 from .DynConfig import MakeStaticFile, SetDynStyle
-
+from .DynHeader import BiliHeader
 
 class DynRender:
     def __init__(self,font_family:str="Noto Sans CJK SC",font_style:str = "Normal", static_path:str = None) -> None:
@@ -27,5 +27,5 @@ class DynRender:
         self.style = SetDynStyle(font_family,font_style).set_style
     
     async def run(self,message:RenderMessage):
-        tasks = []
-    
+        task = BiliHeader(self.static_path,self.style)
+        return await task.run(message.header)

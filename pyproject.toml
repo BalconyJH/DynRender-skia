@@ -11,8 +11,12 @@ packages = [{include = "dynrender_skia"}]
 python = "^3.8"
 dynamicadaptor = "^0.4.3"
 skia-python = "^87.5"
-fonttools = "^4.39.4"
+httpx = "^0.24.1"
+emoji = "^2.6.0"
 
+
+[tool.poetry.group.dev.dependencies]
+viztracer = "^0.15.6"
 
 [build-system]
 requires = ["poetry-core"]

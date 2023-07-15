@@ -13,7 +13,7 @@ libGL.so.1: cannot open shared object file: No such file or directory
 
 ```bash
 
-apt install libgl1
+apt install libgl1-mesa-glx
 
 ```
 > ArchLinux用户
@@ -23,6 +23,6 @@ pacman -S libgl
 ```
 > centos用户
 ```bash
-yum install mesa-libGL -Y
+yum install mesa-libGL -y
 
 ```

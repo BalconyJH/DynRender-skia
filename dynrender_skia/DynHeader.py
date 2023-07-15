@@ -127,7 +127,7 @@ class BiliHeader:
         elif self.message.pub_time:
             pub_time = self.message.pub_time
         else:
-            pub_time = time.strftime("%Y-%m-%d %H:%M:%S", localtime(time()))
+            pub_time = strftime("%Y-%m-%d %H:%M:%S", localtime(time()))
 
         await self.draw_text(pub_time,
                              self.style.font.font_family,
@@ -138,8 +138,7 @@ class BiliHeader:
                              200, 350)
 
     async def paste_logo(self) -> None:
-        logo = skia.Image.open(
-            path.join(self.src_path, "bilibili.png")).resize(231, 105)
+        logo = skia.Image.open(path.join(self.src_path, "bilibili.png")).resize(231, 105)
         await self.paste(logo, (433, 20))
 
     async def draw_name(self):
@@ -164,6 +163,7 @@ class BiliHeader:
         paint = skia.Paint(AntiAlias=True, Color=font_color)
         font_name = None
         offset = x
+        font = None
         for i in text:
             if typeface := skia.FontMgr().matchFamilyStyleCharacter(
                 font_family,

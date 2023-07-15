@@ -106,7 +106,7 @@ class SetDynStyle:
                     "rich_text":(0, 161, 214,255),
                     "white":(255,255,255,255)
                 },
-                "backgroud":{
+                "background":{
                     "normal":(255,255,255,255),
                     "repost":(244, 245, 247,255),
                     "border":(229, 233, 239,255)

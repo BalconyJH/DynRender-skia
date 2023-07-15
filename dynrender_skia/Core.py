@@ -7,13 +7,14 @@
 @Version :   1.0
 @Desc    :   None
 '''
+import asyncio
 
 from dynamicadaptor.Message import RenderMessage
 
 from .DynConfig import MakeStaticFile, SetDynStyle
 from .DynHeader import BiliHeader
-
-
+from .DynText import BiliText
+from .DynTools import merge_pictures
 class DynRender:
     def __init__(self, font_family: str = "Noto Sans CJK SC", font_style: str = "Normal",
                  static_path: str = None) -> None:
@@ -28,5 +29,9 @@ class DynRender:
         self.style = SetDynStyle(font_family, font_style).set_style
 
     async def run(self, message: RenderMessage):
-        task = BiliHeader(self.static_path, self.style)
-        return await task.run(message.header)
+        tasks = [BiliHeader(self.static_path, self.style).run(message.header)]
+        if message.text is not None:
+            tasks.append(BiliText(self.static_path, self.style).run(message.text))
+
+        result = await asyncio.gather(*tasks)
+        return await merge_pictures(result)

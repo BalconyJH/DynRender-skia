@@ -8,14 +8,15 @@
 @Desc    :   None
 '''
 
-
 from dynamicadaptor.Message import RenderMessage
 
 from .DynConfig import MakeStaticFile, SetDynStyle
 from .DynHeader import BiliHeader
 
+
 class DynRender:
-    def __init__(self,font_family:str="Noto Sans CJK SC",font_style:str = "Normal", static_path:str = None) -> None:
+    def __init__(self, font_family: str = "Noto Sans CJK SC", font_style: str = "Normal",
+                 static_path: str = None) -> None:
         """creat static file and set font family and font style
 
         Args:
@@ -24,8 +25,8 @@ class DynRender:
             static_path (str, optional): static file path,must be absolute path. Defaults to None.
         """
         self.static_path = MakeStaticFile(static_path).check_cache_file
-        self.style = SetDynStyle(font_family,font_style).set_style
-    
-    async def run(self,message:RenderMessage):
-        task = BiliHeader(self.static_path,self.style)
+        self.style = SetDynStyle(font_family, font_style).set_style
+
+    async def run(self, message: RenderMessage):
+        task = BiliHeader(self.static_path, self.style)
         return await task.run(message.header)

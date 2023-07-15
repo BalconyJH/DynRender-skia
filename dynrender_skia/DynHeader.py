@@ -12,6 +12,7 @@ from .DynStyle import PolyStyle
 
 
 class BiliHeader:
+    """渲染动态的头部"""
     def __init__(self, static_path: str, style: PolyStyle) -> None:
         self.face_path = path.join(static_path, "Cache", "Face")
         self.emoji_path = path.join(static_path, "Cache", "Emoji")
@@ -26,7 +27,7 @@ class BiliHeader:
             self.message = header_message
             surface = skia.Surface(1080, 400)
             self.canvas = surface.getCanvas()
-            self.canvas.clear(skia.Color(*self.style.color.backgroud.normal))
+            self.canvas.clear(skia.Color(*self.style.color.background.normal))
             result = await asyncio.gather(self.paste_logo(),
                                           self.draw_name(),
                                           self.draw_pub_time(),
@@ -42,6 +43,11 @@ class BiliHeader:
             return None
 
     async def paste_pendant(self, pendant):
+        """
+        paste pendant onto canvas
+        @param pendant:
+        @return:
+        """
         if pendant is not None:
             pendant = pendant.resize(190, 190)
             await self.paste(pendant, (10, 210))
@@ -104,7 +110,7 @@ class BiliHeader:
             Style=skia.Paint.kFill_Style,
             Color=skia.Color(255, 255, 255, 255),
             AntiAlias=True)
-        radius = int(img.dimensions().width()/2)
+        radius = int(img.dimensions().width() / 2)
         mask.drawCircle(radius, radius, radius, paint)
 
         paint = skia.Paint(
@@ -117,7 +123,7 @@ class BiliHeader:
             colorType=skia.ColorType.kRGBA_8888_ColorType))
 
         canvas = skia.Canvas(image_array)
-        canvas.drawCircle(radius, radius, radius-2, paint)
+        canvas.drawCircle(radius, radius, radius - 2, paint)
         return skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)).resize(size, size)
 
     async def draw_pub_time(self):
@@ -166,10 +172,10 @@ class BiliHeader:
         font = None
         for i in text:
             if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                font_family,
-                font_style,
-                ["zh", "en"],
-                ord(i),
+                    font_family,
+                    font_style,
+                    ["zh", "en"],
+                    ord(i),
             ):
                 text_family_name = typeface.getFamilyName()
                 if font_name != text_family_name:

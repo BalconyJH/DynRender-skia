@@ -34,18 +34,12 @@ async def request_img(client, url, size):
 
 
 async def merge_pictures(img_list: List[ndarray]) -> ndarray:
-    img_top = None
+    img_top = np.zeros([0,1080,4],np.uint8)
     if len(img_list) == 1 and img_list[0] is not None:
         return img_list[0]
-    for i, j in enumerate(img_list):
-        if i == 0:
-            img_top = j
-        else:
-            try:
-                img_top = np.vstack((img_top, j))
-            except ValueError:
-                print(i,j)
-                # pass
+    for i in img_list:
+        if i is not None:
+            img_top = np.vstack((img_top, i))
     return img_top
 
 

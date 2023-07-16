@@ -15,7 +15,7 @@ from .DynConfig import MakeStaticFile, SetDynStyle
 from .DynHeader import BiliHeader
 from .DynText import BiliText
 from .DynTools import merge_pictures
-
+from .DynMajor import BiliMajor
 
 class DynRender:
     def __init__(self, font_family: str = "Noto Sans CJK SC",
@@ -37,6 +37,7 @@ class DynRender:
         tasks = [BiliHeader(self.static_path, self.style).run(message.header)]
         if message.text is not None:
             tasks.append(BiliText(self.static_path, self.style).run(message.text))
-
+        if message.major is not None:
+            tasks.append(BiliMajor(self.static_path, self.style).run(message.major))
         result = await asyncio.gather(*tasks)
         return await merge_pictures(result)

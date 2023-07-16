@@ -89,9 +89,10 @@ class MakeStaticFile:
 
 
 class SetDynStyle:
-    def __init__(self, font_family: str, font_style: str) -> None:
+    def __init__(self, font_family: str,emoji_font_family:str, font_style: str) -> None:
         self.font_family = font_family
         self.font_style = font_style
+        self.emoji_font_family = emoji_font_family
 
     @property
     def set_style(self) -> PolyStyle:
@@ -106,7 +107,7 @@ class SetDynStyle:
                     "rich_text":(0, 161, 214,255),
                     "white":(255,255,255,255)
                 },
-                "backgroud":{
+                "background":{
                     "normal":(255,255,255,255),
                     "repost":(244, 245, 247,255),
                     "border":(229, 233, 239,255)
@@ -115,6 +116,7 @@ class SetDynStyle:
             },
             "font":{
             "font_family":self.font_family,
+            "emoji_font_family":self.emoji_font_family,
             "font_style":self.get_font_style(),
             "font_size":{
                 "name":45,

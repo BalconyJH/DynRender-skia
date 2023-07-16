@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+'''
+@File    :   DynMajor.py
+@Time    :   2023/07/16 20:21:46
+@Author  :   Polyisoprene
+@Version :   1.0
+@Desc    :   None
+'''
+
 from os import path
 
 import emoji

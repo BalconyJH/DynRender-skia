@@ -25,27 +25,28 @@ class BiliText:
         self.style = style
         surface = skia.Surface(1080, 60)
         self.canvas = surface.getCanvas()
+        self.bg_color = None
         self.offset = 40
-        self.x_bound = 1040
+        self.x_bound = 1030
         self.image_list = []
         self.emoji_dict = {}
 
     async def run(self, dyn_text: Text, repost: bool = False) -> Optional[np.ndarray]:
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
-        self.canvas.clear(skia.Color(*background_color))
+        self.bg_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        self.canvas.clear(skia.Color(*self.bg_color))
         try:
             tasks = []
             if dyn_text.topic is not None:
-                tasks.append(self.make_topic(dyn_text.topic.name, repost))
+                tasks.append(self.make_topic(dyn_text.topic.name))
             if dyn_text.text:
-                tasks.append(self.make_text_image(dyn_text, repost))
+                tasks.append(self.make_text_image(dyn_text))
             await asyncio.gather(*tasks)
             return await merge_pictures(self.image_list)
         except Exception as e:
             logger.exception("Error")
             return None
 
-    async def make_text_image(self, dyn_text, repost: bool):
+    async def make_text_image(self, dyn_text):
         emoji_list = []
         emoji_name_list = []
         rich_list = []
@@ -58,6 +59,8 @@ class BiliText:
                 rich_list.append(i)
         result = await asyncio.gather(self.get_emoji(emoji_list, emoji_name_list), self.get_rich_pic(rich_list))
         await self.draw_text(result[1], dyn_text)
+        if self.offset != 40:
+            self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
 
     async def get_emoji(self, emoji_url: list, emoji_name: list):
         emoji_pic = []
@@ -77,7 +80,8 @@ class BiliText:
             for i, j in enumerate(emoji_index):
                 emoji_path = path.join(self.emoji_path, f"{emoji_name[j]}.png")
                 emoji_pic.insert(j, result[i])
-                result[i].save(emoji_path)
+                if result[i] is not None:
+                    result[i].save(emoji_path)
         for i, j in enumerate(emoji_name):
             temp[j] = emoji_pic[i]
         self.emoji_dict = temp
@@ -125,11 +129,10 @@ class BiliText:
                     rich_dic["link"] = img
         return rich_dic
 
-    async def make_topic(self, topic: str, repost: bool) -> None:
+    async def make_topic(self, topic: str) -> None:
         """
         make topic image
         @param topic: topic text
-        @param repost: Is the text within the forwarded content
         @return: None
         """
         topic_size = self.style.font.font_size.text
@@ -137,8 +140,7 @@ class BiliText:
         icon_size = int(topic_size * 1.5)
         surface = skia.Surface(1080, icon_size + 10)
         canvas = surface.getCanvas()
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
-        canvas.clear(skia.Color(*background_color))
+        canvas.clear(skia.Color(*self.bg_color))
         await paste(canvas, topic_img, (45, 15))
 
         paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
@@ -163,5 +165,118 @@ class BiliText:
             offset += font.measureText(i)
         self.image_list.append(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
 
-    async def draw_text(self, text: str, color: tuple, repost: bool):
-        pass
+    async def draw_text(self, rich_list: list, dyn_text: Text):
+        self.canvas.clear(skia.Color(*self.bg_color))
+        for i in dyn_text.rich_text_nodes:
+            if i.type in {"RICH_TEXT_NODE_TYPE_AT", "RICH_TEXT_NODE_TYPE_TEXT", "RICH_TEXT_NODE_TYPE_TOPIC"}:
+                if i.type in {"RICH_TEXT_NODE_TYPE_AT", "RICH_TEXT_NODE_TYPE_TOPIC"}:
+                    color = skia.Color(*self.style.color.font_color.rich_text)
+                else:
+                    color = skia.Color(*self.style.color.font_color.text)
+                await self.draw_plain_text(i.text, color)
+            elif i.type == "RICH_TEXT_NODE_TYPE_EMOJI":
+                pass
+                await self.draw_emoji(i.text)
+            else:
+                await self.draw_rich_text(i, rich_list)
+
+    async def draw_plain_text(self, dyn_detail, color):
+        dyn_detail = dyn_detail.translate(str.maketrans({'\r': ''}))
+        paint = skia.Paint(AntiAlias=True, Color=color)
+        font = None
+        family_name = None
+        emoji_info = await self.get_emoji_text(dyn_detail)
+        total = len(dyn_detail) - 1
+        offset = 0
+        while offset <= total:
+            j = dyn_detail[offset]
+            if j == "\n":
+                self.canvas.saveLayer()
+                self.canvas.clear(skia.Color(*self.bg_color))
+                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.canvas.restore()
+                offset += 1
+                self.offset = 40
+                continue
+            if offset in emoji_info.keys():
+                j = emoji_info[offset][1]
+                offset = emoji_info[offset][0]
+                typeface = skia.FontMgr().matchFamilyStyleCharacter(self.style.font.emoji_font_family,
+                                                                    self.style.font.font_style, ["zh", "en"], ord(j))
+            else:
+                offset += 1
+                typeface = skia.FontMgr().matchFamilyStyleCharacter(self.style.font.font_family, self.style.font.font_style,["zh", "en"], ord(j))
+            if typeface:
+                text_family_name = typeface.getFamilyName()
+                if family_name != text_family_name:
+                    family_name = text_family_name
+                    font = skia.Font(typeface, self.style.font.font_size.text)
+            else:
+                font = skia.Font(None,  self.style.font.font_size.text)
+            blob = skia.TextBlob(j, font)
+            self.canvas.drawTextBlob(blob, self.offset, 50, paint)
+            self.offset += font.measureText(j)
+            if self.offset > self.x_bound:
+                self.offset = 40
+                self.canvas.saveLayer()
+                self.canvas.clear(skia.Color(*self.bg_color))
+                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.canvas.restore()
+
+    async def draw_emoji(self,emoji_detail):
+        img = self.emoji_dict[emoji_detail]
+        if img is not None:
+            img_size = img.dimensions().width()
+            await paste(self.canvas,img, (int(self.offset),0))
+            self.offset += img_size+5
+            if self.offset >= self.x_bound:
+                self.canvas.saveLayer()
+                self.canvas.clear(skia.Color(*self.bg_color))
+                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.canvas.restore()
+                self.offset = 40
+
+    async def draw_rich_text(self, text_detail, rich_list):
+        if text_detail.type == "RICH_TEXT_NODE_TYPE_VOTE":
+            icon = rich_list["vote"]
+        elif text_detail.type == "RICH_TEXT_NODE_TYPE_LOTTERY":
+            icon = rich_list["lottery"]
+        elif text_detail.type == "RICH_TEXT_NODE_TYPE_GOODS":
+            icon = rich_list["goods"]
+        elif text_detail.type == "RICH_TEXT_NODE_TYPE_CV":
+            icon = rich_list["cv"]
+        else:
+            icon = rich_list["link"]
+        await paste(self.canvas,icon,(int(self.offset),int(60-icon.dimensions().height())/2))
+        self.offset += icon.dimensions().width()+5
+        if self.offset >= self.x_bound:
+            self.canvas.saveLayer()
+            self.canvas.clear(skia.Color(*self.bg_color))
+            self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+            self.canvas.restore()
+            self.offset = 40
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
+        font_name = None
+        font = None
+        for i in text_detail.text:
+            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(i),
+            ):
+                text_family_name = typeface.getFamilyName()
+                if font_name != text_family_name:
+                    font_name = text_family_name
+                    font = skia.Font(typeface, self.style.font.font_size.text)
+            else:
+                font = skia.Font(None, self.style.font.font_size.text)
+            blob = skia.TextBlob(i, font)
+            self.canvas.drawTextBlob(blob, self.offset, 50, paint)
+            self.offset += font.measureText(i)
+            if self.offset >= self.x_bound:
+                self.canvas.saveLayer()
+                self.canvas.clear(skia.Color(*self.bg_color))
+                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.canvas.restore()
+                self.offset = 40

@@ -28,6 +28,7 @@ class BackgroundColor(BaseModel):
 
 class FontCfg(BaseModel):
     font_family: str
+    emoji_font_family: str
     font_style: Any
     font_size: FontSize
 

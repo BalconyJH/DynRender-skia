@@ -9,25 +9,25 @@ import httpx
 import numpy as np
 from numpy import ndarray
 import skia
-
+from loguru import logger
 
 async def get_pictures(url: Union[str,list], size: Optional[tuple] = None):
     async with httpx.AsyncClient() as client:
-        # resp = await client.get(url)
         if isinstance(url, list):
             return await asyncio.gather(*[request_img(client, i, size) for i in url])
-        else:
+        elif isinstance(url,str):
             return await request_img(client, url, size)
 
 
 async def request_img(client, url, size):
     try:
-        resp = client.get(url)
+        resp = await client.get(url)
         assert resp.status_code == 200
-        img = skia.Image.MakeFromEncoded(resp.content).convert(alphaType=skia.AlphaType.kPremul_AlphaType)
-        if size is not None:
+        img = skia.Image.MakeFromEncoded(resp.content)
+        if size is not None and img is not None:
             return img.resize(*size)
     except:
+        logger.exception("e")
         return None
 
         #     pas
@@ -44,7 +44,8 @@ async def merge_pictures(img_list: List[ndarray]) -> ndarray:
             try:
                 img_top = np.vstack((img_top, j))
             except ValueError:
-                print(j)
+                print(i,j)
+                # pass
     return img_top
 
 

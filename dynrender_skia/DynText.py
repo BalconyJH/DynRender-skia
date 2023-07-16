@@ -202,7 +202,7 @@ class BiliText:
                 j = emoji_info[offset][1]
                 offset = emoji_info[offset][0]
                 typeface = skia.FontMgr().matchFamilyStyleCharacter(self.style.font.emoji_font_family,
-                                                                    self.style.font.font_style, ["zh", "en"], ord(j))
+                                                                    self.style.font.font_style, ["zh", "en"], ord(j[0]))
             else:
                 offset += 1
                 typeface = skia.FontMgr().matchFamilyStyleCharacter(self.style.font.font_family, self.style.font.font_style,["zh", "en"], ord(j))

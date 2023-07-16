@@ -75,18 +75,21 @@ class BiliHeader:
             await self.paste(face, (45, 245))
 
     async def get_face_and_pendant(self, img_type: bool = False):
+
         if img_type:
             img_name = f"{self.message.mid}.webp"
             img_url = f"{self.message.face}@240w_240h_1c_1s.webp"
             img_path = path.join(self.face_path, img_name)
         elif self.message.pendant and self.message.pendant.image:
+
             img_name = f"{self.message.pendant.pid}.png"
             img_url = f"{self.message.pendant.image}@360w_360h.webp"
             img_path = path.join(self.pendant_path, img_name)
         else:
             return None
-        if path.exists(img_path) and (not img_type or time() - int(path.getmtime(img_path)) <= 43200):
-            return skia.Image.open(img_path)
+        if path.exists(img_path):
+            if time() - int(path.getmtime(img_path)) <= 43200:
+                return skia.Image.open(img_path)
         img = await self.get_pictures(img_url)
         if img is not None:
             img.save(img_path)
@@ -98,7 +101,7 @@ class BiliHeader:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url)
                 assert resp.status_code == 200
-            return skia.Image.MakeFromEncoded(resp.content).convert(alphaType=skia.AlphaType.kPremul_AlphaType)
+            return skia.Image.MakeFromEncoded(resp.content)
         except Exception:
             return None
 

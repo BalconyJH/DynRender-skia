@@ -26,6 +26,7 @@ async def request_img(client, url, size):
         img = skia.Image.MakeFromEncoded(resp.content)
         if size is not None and img is not None:
             return img.resize(*size)
+        return img
 
     except:
         logger.exception("e")

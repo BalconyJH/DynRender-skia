@@ -63,6 +63,7 @@ class DynMajorDraw:
             img_url = src
         img = await get_pictures(img_url)
         if img is not None:
+            
             img = img.resize(width=1008, height=int(img.dimensions().height() * 1008 / img.dimensions().width()))
             img_size = img.dimensions()
             surface = skia.Surface(1080, img_size.height() + 20)

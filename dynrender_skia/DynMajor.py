@@ -28,6 +28,9 @@ class BiliMajor:
             major_type = dyn_major.type
             if major_type == "MAJOR_TYPE_DRAW":
                 return await DynMajorDraw(self.style, dyn_major).run(repost)
+            else:
+                logger.warning(f"{major_type} is not supported")
+                return None
         except Exception as e:
             logger.exception(e)
             return None

@@ -32,7 +32,8 @@ class BiliText:
         self.emoji_dict = {}
 
     async def run(self, dyn_text: Text, repost: bool = False) -> Optional[np.ndarray]:
-
+        self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family,self.style.font.font_style),self.style.font.font_size.text)
+        self.emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family,self.style.font.font_style),self.style.font.font_size.text)
         self.bg_color = self.style.color.background.repost if repost else self.style.color.background.normal
         self.canvas.clear(skia.Color(*self.bg_color))
         try:
@@ -184,8 +185,8 @@ class BiliText:
         font = None
         dyn_detail = dyn_detail.translate(str.maketrans({'\r': ''}))
         paint = skia.Paint(AntiAlias=True, Color=color)
-        text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family,self.style.font.font_style),self.style.font.font_size.text)
-        emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family,self.style.font.font_style),self.style.font.font_size.text)
+        # text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family,self.style.font.font_style),self.style.font.font_size.text)
+        # emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family,self.style.font.font_style),self.style.font.font_size.text)
         emoji_info = await self.get_emoji_text(dyn_detail)
         total = len(dyn_detail) - 1
         offset = 0
@@ -202,10 +203,10 @@ class BiliText:
             if offset in emoji_info.keys():
                 j = emoji_info[offset][1]
                 offset = emoji_info[offset][0]
-                font = emoji_font
+                font = self.emoji_font
             else:
                 offset +=1
-                font = text_font
+                font = self.text_font
             measure = font.measureText(j)
             if measure != int(measure):
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
@@ -216,7 +217,7 @@ class BiliText:
                 ):
                     font = skia.Font(typeface, self.style.font.font_size.text)
                 else:
-                    font = text_font
+                    font = self.text_font
                 measure = font.measureText(j)
             blob = skia.TextBlob(j, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)

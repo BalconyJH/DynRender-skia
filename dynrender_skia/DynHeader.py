@@ -13,6 +13,7 @@ from .DynStyle import PolyStyle
 
 class BiliHeader:
     """渲染动态的头部"""
+
     def __init__(self, static_path: str, style: PolyStyle) -> None:
         self.face_path = path.join(static_path, "Cache", "Face")
         self.emoji_path = path.join(static_path, "Cache", "Emoji")
@@ -122,10 +123,12 @@ class BiliHeader:
             Color=skia.Color(251, 114, 153, 255),
             AntiAlias=True)
 
-        image_array = np.bitwise_and(img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType), mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
-        canvas = skia.Canvas(image_array,colorType=skia.ColorType.kRGBA_8888_ColorType)
+        image_array = np.bitwise_and(img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+                                     mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+        canvas = skia.Canvas(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
         canvas.drawCircle(radius, radius, radius - 2, paint)
-        return skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType).resize(size, size)
+        return skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+                                    colorType=skia.ColorType.kRGBA_8888_ColorType).resize(size, size)
 
     async def draw_pub_time(self):
         if self.message.pub_ts:

@@ -32,6 +32,7 @@ class BiliText:
         self.emoji_dict = {}
 
     async def run(self, dyn_text: Text, repost: bool = False) -> Optional[np.ndarray]:
+
         self.bg_color = self.style.color.background.repost if repost else self.style.color.background.normal
         self.canvas.clear(skia.Color(*self.bg_color))
         try:
@@ -180,11 +181,11 @@ class BiliText:
                 await self.draw_rich_text(i, rich_list)
 
     async def draw_plain_text(self, dyn_detail, color):
+        font = None
         dyn_detail = dyn_detail.translate(str.maketrans({'\r': ''}))
         paint = skia.Paint(AntiAlias=True, Color=color)
-        font = None
-        text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family),self.style.font.font_size.text)
-        emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family),self.style.font.font_size.text)
+        text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family,self.style.font.font_style),self.style.font.font_size.text)
+        emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family,self.style.font.font_style),self.style.font.font_size.text)
         emoji_info = await self.get_emoji_text(dyn_detail)
         total = len(dyn_detail) - 1
         offset = 0

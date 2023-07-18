@@ -4,18 +4,18 @@
 # @File    : DynTools.py
 import asyncio
 from typing import List, Optional, Union
-
 import httpx
 import numpy as np
 from numpy import ndarray
 import skia
 from loguru import logger
 
-async def get_pictures(url: Union[str,list], size: Optional[tuple] = None):
+
+async def get_pictures(url: Union[str, list], size: Optional[tuple] = None):
     async with httpx.AsyncClient() as client:
         if isinstance(url, list):
             return await asyncio.gather(*[request_img(client, i, size) for i in url])
-        elif isinstance(url,str):
+        elif isinstance(url, str):
             return await request_img(client, url, size)
 
 
@@ -26,6 +26,7 @@ async def request_img(client, url, size):
         img = skia.Image.MakeFromEncoded(resp.content)
         if size is not None and img is not None:
             return img.resize(*size)
+
     except:
         logger.exception("e")
         return None
@@ -34,7 +35,7 @@ async def request_img(client, url, size):
 
 
 async def merge_pictures(img_list: List[ndarray]) -> ndarray:
-    img_top = np.zeros([0,1080,4],np.uint8)
+    img_top = np.zeros([0, 1080, 4], np.uint8)
     if len(img_list) == 1 and img_list[0] is not None:
         return img_list[0]
     for i in img_list:

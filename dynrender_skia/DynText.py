@@ -175,7 +175,6 @@ class BiliText:
                     color = skia.Color(*self.style.color.font_color.text)
                 await self.draw_plain_text(i.text, color)
             elif i.type == "RICH_TEXT_NODE_TYPE_EMOJI":
-                pass
                 await self.draw_emoji(i.text)
             else:
                 await self.draw_rich_text(i, rich_list)
@@ -184,7 +183,8 @@ class BiliText:
         dyn_detail = dyn_detail.translate(str.maketrans({'\r': ''}))
         paint = skia.Paint(AntiAlias=True, Color=color)
         font = None
-        family_name = None
+        text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family),self.style.font.font_size.text)
+        emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family),self.style.font.font_size.text)
         emoji_info = await self.get_emoji_text(dyn_detail)
         total = len(dyn_detail) - 1
         offset = 0
@@ -201,21 +201,25 @@ class BiliText:
             if offset in emoji_info.keys():
                 j = emoji_info[offset][1]
                 offset = emoji_info[offset][0]
-                typeface = skia.FontMgr().matchFamilyStyleCharacter(self.style.font.emoji_font_family,
-                                                                    self.style.font.font_style, ["zh", "en"], ord(j[0]))
+                font = emoji_font
             else:
-                offset += 1
-                typeface = skia.FontMgr().matchFamilyStyleCharacter(self.style.font.font_family, self.style.font.font_style,["zh", "en"], ord(j))
-            if typeface:
-                text_family_name = typeface.getFamilyName()
-                if family_name != text_family_name:
-                    family_name = text_family_name
+                offset +=1
+                font = text_font
+            measure = font.measureText(j)
+            if measure != int(measure):
+                if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(j[0]),
+                ):
                     font = skia.Font(typeface, self.style.font.font_size.text)
-            else:
-                font = skia.Font(None,  self.style.font.font_size.text)
+                else:
+                    font = text_font
+                measure = font.measureText(j)
             blob = skia.TextBlob(j, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)
-            self.offset += font.measureText(j)
+            self.offset += measure
             if self.offset > self.x_bound:
                 self.offset = 40
                 self.canvas.saveLayer()

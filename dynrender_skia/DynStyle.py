@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+'''
+@File    :   DynStyle.py
+@Time    :   2023/07/16 20:42:46
+@Author  :   Polyisoprene
+@Version :   1.0
+@Desc    :   None
+'''
+
 from pydantic import BaseModel
 from typing import Any
 

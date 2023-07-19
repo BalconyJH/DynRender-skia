@@ -72,8 +72,8 @@ class AbstractMajor(ABC):
             if x > x_bound:
                 y+= y_int
                 if y>= y_bound:
-                    # blob = skia.TextBlob("...", font)
-                    # canvas.drawTextBlob(blob, x, y-y_int, paint)
+                    blob = skia.TextBlob("...", font)
+                    canvas.drawTextBlob(blob, x, y-y_int, paint)
                     break
                 x = pos[0]
                 
@@ -262,7 +262,7 @@ class DynMajorArchive(AbstractMajor):
         size = self.text_font.measureText(duration)
         surface = skia.Surface(int(size+20),int(self.text_font.getSize()+20))
         canvas = surface.getCanvas()
-        canvas.clear(skia.Color(0, 0, 0, 90))
+        canvas.clear(skia.Color(0, 0, 0, 150))
         blob = skia.TextBlob(duration, self.text_font)
         paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
         canvas.drawTextBlob(blob, 10,int(self.text_font.getSize()+5) , paint)

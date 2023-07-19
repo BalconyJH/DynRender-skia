@@ -55,8 +55,7 @@ class AbstractMajor(ABC):
             else:
                 offset +=1
                 font = self.text_font
-            measure = font.measureText(j)
-            if measure != int(measure):
+            if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
                     self.style.font.font_style,
@@ -66,7 +65,7 @@ class AbstractMajor(ABC):
                     font = skia.Font(typeface, font_size)
                 else:
                     font = self.text_font
-                measure = font.measureText(j)
+            measure = font.measureText(j)
             blob = skia.TextBlob(j, font)
             canvas.drawTextBlob(blob, x, y, paint)
             x += measure

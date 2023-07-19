@@ -205,7 +205,6 @@ class BiliText:
             else:
                 offset +=1
                 font = self.text_font
-            measure = font.measureText(j)
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
@@ -216,7 +215,7 @@ class BiliText:
                     font = skia.Font(typeface, self.style.font.font_size.text)
                 else:
                     font = self.text_font
-                measure = font.measureText(j)
+            measure = font.measureText(j)
             blob = skia.TextBlob(j, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)
             self.offset += measure

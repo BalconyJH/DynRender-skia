@@ -6,7 +6,6 @@
 @Version :   1.0
 @Desc    :   None
 '''
-import time
 from os import path
 
 import skia
@@ -18,6 +17,52 @@ from .DynTools import paste, merge_pictures, get_pictures
 from dynamicadaptor.Majors import Major
 from math import ceil
 
+
+from abc import ABC, abstractmethod
+
+
+class AbstractMajor(ABC):
+    def __init__(self,src_path: str,style: PolyStyle, dyn_major: Major) -> None:
+        self.style = style
+        self.major = dyn_major
+        self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family,self.style.font.font_style),self.style.font.font_size.text)
+        self.emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family,self.style.font.font_style),self.style.font.font_size.text)    
+        self.src_path = src_path
+        
+        
+    @abstractmethod
+    async def run(self,repost):
+        pass
+    
+    async def draw_text(self):
+        pass
+    
+    async def draw_shadow(self,canvas,pos:tuple,corner:int):
+        x,y,width,height= pos
+        rec = skia.Rect.MakeXYWH(x,y,width,height)
+        paint = skia.Paint(
+        Color=skia.Color(255,255,255),
+        AntiAlias=True,
+        ImageFilter=skia.ImageFilters.DropShadow(3, 3, 3, 3, skia.Color(120,120,120))
+        )
+        if corner != 0:
+            canvas.drawRoundRect(rec, corner, corner, paint)
+        else:
+            canvas.drawRect(rec,paint)
+        
+    
+    async def make_round_cornor(self,img,corner:int):
+        surface = skia.Surface(img.dimensions().fWidth,img.dimensions().fHeight)
+        mask = surface.getCanvas()
+        paint = skia.Paint(
+            Style=skia.Paint.kFill_Style,
+            Color = skia.Color(255,255,255,255),
+            AntiAlias=True)
+        rect = skia.Rect.MakeXYWH(0, 0, img.dimensions().fWidth,img.dimensions().fHeight)
+        mask.drawRoundRect(rect, corner, corner, paint)
+        image_array =  np.bitwise_and(img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+        return skia.Image.fromarray(image_array,colorType=skia.ColorType.kRGBA_8888_ColorType)
+        
 class BiliMajor:
     def __init__(self, static_path: str, style: PolyStyle) -> None:
         self.src_path = path.join(static_path, "Src")
@@ -28,6 +73,8 @@ class BiliMajor:
             major_type = dyn_major.type
             if major_type == "MAJOR_TYPE_DRAW":
                 return await DynMajorDraw(self.style, dyn_major).run(repost)
+            elif major_type == "MAJOR_TYPE_ARCHIVE":
+                return await DynMajorArchive(self.src_path,self.style, dyn_major).run(repost)
             else:
                 logger.warning(f"{major_type} is not supported")
                 return None
@@ -37,9 +84,7 @@ class BiliMajor:
 
 
 class DynMajorDraw:
-    def __init__(self, style: PolyStyle, dyn_major: Major) -> None:
-        self.style = style
-        self.major = dyn_major
+    
 
     async def run(self, repost: bool) -> Optional[np.ndarray]:
         """
@@ -47,14 +92,18 @@ class DynMajorDraw:
         @param repost: bool
         @return:
         """
-        item_count = len(self.major.draw.items)
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
-        if item_count == 1:
-            return await self.single_img(background_color, self.major.draw.items)
-        elif item_count in {2, 4}:
-            return await self.dual_img(background_color, self.major.draw.items)
-        else:
-            return await self.triplex_img(background_color, self.major.draw.items)
+        try:
+            item_count = len(self.major.draw.items)
+            background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+            if item_count == 1:
+                return await self.single_img(background_color, self.major.draw.items)
+            elif item_count in {2, 4}:
+                return await self.dual_img(background_color, self.major.draw.items)
+            else:
+                return await self.triplex_img(background_color, self.major.draw.items)
+        except Exception:
+            logger.exception("Error")
+            return None
 
     async def single_img(self, background_color: str, items) -> np.ndarray:
         src = items[0].src
@@ -129,3 +178,28 @@ class DynMajorDraw:
                 x = 11
                 y += 356
         return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+    
+class DynMajorArchive(AbstractMajor):
+    
+    
+    async def run(self,repost):
+        title = self.major.archive.title
+        duration = self.major.archive.duration_text
+        badge = self.major.archive.badge
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        surface = skia.Surface(1080, 695)
+        self.canvas = surface.getCanvas()
+        self.canvas.clear(skia.Color(*background_color))
+        try:
+            cover_img = await get_pictures(f"{self.major.archive.cover}@505w_285h_1c.webp",(1010, 570))
+            cover = await self.make_round_cornor(cover_img,20)
+            await self.draw_shadow(self.canvas,(35,25,1010,655),20)
+            await paste(self.canvas,cover,(35,25))
+            tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
+            await paste(self.canvas, tv,(905, 455))
+            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        except Exception:
+            logger.exception("Error")
+            return None
+        
+    

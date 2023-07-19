@@ -87,11 +87,11 @@ class AbstractMajor(ABC):
         return temp
         
     
-    async def draw_shadow(self,canvas,pos:tuple,corner:int):
+    async def draw_shadow(self,canvas,pos:tuple,corner:int,bg_color):
         x,y,width,height= pos
         rec = skia.Rect.MakeXYWH(x,y,width,height)
         paint = skia.Paint(
-        Color=skia.Color(255,255,255),
+        Color=skia.Color(*bg_color),
         AntiAlias=True,
         ImageFilter=skia.ImageFilters.DropShadow(3, 3, 3, 3, skia.Color(120,120,120))
         )
@@ -243,10 +243,11 @@ class DynMajorArchive(AbstractMajor):
         self.canvas.clear(skia.Color(*background_color))
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
-            cover_img = await get_pictures(f"{self.major.archive.cover}@505w_285h_1c.webp",(1010, 570))
-            cover = await self.make_round_cornor(cover_img,20)
+            cover = await get_pictures(f"{self.major.archive.cover}@505w_285h_1c.webp",(1010, 570))
             duration_img = await self.make_duration(duration)
-            await self.draw_shadow(self.canvas,(35,25,1010,655),20)
+            await self.draw_shadow(self.canvas,(35,25,1010,655),20,background_color)
+            rec = skia.Rect.MakeXYWH(35,25,1010,665)
+            self.canvas.clipRRect(skia.RRect(rec,20,20),skia.ClipOp.kIntersect)
             await self.draw_text(self.canvas,self.major.archive.title,self.style.font.font_size.text,(60,650,950,600,10),self.style.color.font_color.text)
             await paste(self.canvas,cover,(35,25))
             await paste(self.canvas, tv,(905, 455))

@@ -10,6 +10,7 @@ from os import path
 
 import skia
 import numpy as np
+import emoji
 from typing import Optional
 from loguru import logger
 from .DynStyle import PolyStyle
@@ -34,8 +35,57 @@ class AbstractMajor(ABC):
     async def run(self,repost):
         pass
     
-    async def draw_text(self):
-        pass
+    async def draw_text(self,canvas,text:str,font_size,pos:tuple,font_color:tuple):
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*font_color))
+        self.text_font.setSize(font_size)
+        self.emoji_font.setSize(font_size)
+        text = text.replace("\t","")
+        emoji_info = await self.get_emoji_text(text)
+        total = len(text) - 1
+        x,y,x_bound,y_bound,y_int = pos
+        offset = 0
+        while offset <= total:
+            j = text[offset]
+            if j == "\n":
+                break
+            if offset in emoji_info.keys():
+                j = emoji_info[offset][1]
+                offset = emoji_info[offset][0]
+                font = self.emoji_font
+            else:
+                offset +=1
+                font = self.text_font
+            measure = font.measureText(j)
+            if measure != int(measure):
+                if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(j[0]),
+                ):
+                    font = skia.Font(typeface, font_size)
+                else:
+                    font = self.text_font
+                measure = font.measureText(j)
+            blob = skia.TextBlob(j, font)
+            canvas.drawTextBlob(blob, x, y, paint)
+            x += measure
+            if x > x_bound:
+                y+= y_int
+                if y>= y_bound:
+                    blob = skia.TextBlob("...", font)
+                    canvas.drawTextBlob(blob, x, y-y_int, paint)
+                    break
+                x = pos[0]
+                
+        
+    async def get_emoji_text(self,text):
+        result = emoji.emoji_list(text)
+        temp = {}
+        for i in result:
+            temp[i["match_start"]] = [i["match_end"], i["emoji"]]
+        return temp
+        
     
     async def draw_shadow(self,canvas,pos:tuple,corner:int):
         x,y,width,height= pos
@@ -52,13 +102,13 @@ class AbstractMajor(ABC):
         
     
     async def make_round_cornor(self,img,corner:int):
-        surface = skia.Surface(img.dimensions().fWidth,img.dimensions().fHeight)
+        surface = skia.Surface(img.width(),img.height())
         mask = surface.getCanvas()
         paint = skia.Paint(
             Style=skia.Paint.kFill_Style,
             Color = skia.Color(255,255,255,255),
             AntiAlias=True)
-        rect = skia.Rect.MakeXYWH(0, 0, img.dimensions().fWidth,img.dimensions().fHeight)
+        rect = skia.Rect.MakeXYWH(0, 0, img.width(),img.height())
         mask.drawRoundRect(rect, corner, corner, paint)
         image_array =  np.bitwise_and(img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
         return skia.Image.fromarray(image_array,colorType=skia.ColorType.kRGBA_8888_ColorType)
@@ -84,6 +134,9 @@ class BiliMajor:
 
 
 class DynMajorDraw:
+    def __init__(self,style,major) -> None:
+        self.style = style
+        self.major = major
     
 
     async def run(self, repost: bool) -> Optional[np.ndarray]:
@@ -116,9 +169,9 @@ class DynMajorDraw:
         img = await get_pictures(img_url)
         if img is not None:
             
-            img = img.resize(width=1008, height=int(img.dimensions().height() * 1008 / img.dimensions().width()))
-            img_size = img.dimensions()
-            surface = skia.Surface(1080, img_size.height() + 20)
+            img = img.resize(width=1008, height=int(img.height() * 1008 / img.width()))
+            # img_size = img.dimensions()
+            surface = skia.Surface(1080, img.height() + 20)
             canvas = surface.getCanvas()
             canvas.clear(skia.Color(*background_color))
             await paste(canvas, img, (36, 10))
@@ -183,23 +236,35 @@ class DynMajorArchive(AbstractMajor):
     
     
     async def run(self,repost):
-        title = self.major.archive.title
         duration = self.major.archive.duration_text
-        badge = self.major.archive.badge
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
+        tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
             cover_img = await get_pictures(f"{self.major.archive.cover}@505w_285h_1c.webp",(1010, 570))
             cover = await self.make_round_cornor(cover_img,20)
+            duration_img = await self.make_duration(duration)
             await self.draw_shadow(self.canvas,(35,25,1010,655),20)
+            await self.draw_text(self.canvas,self.major.archive.title,self.style.font.font_size.text,(60,650,950,600,10),self.style.color.font_color.text)
             await paste(self.canvas,cover,(35,25))
-            tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
             await paste(self.canvas, tv,(905, 455))
+            await paste(self.canvas,duration_img,(80, 525))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception:
             logger.exception("Error")
             return None
         
-    
+
+    async def make_duration(self,duration):
+        self.text_font.setSize(self.style.font.font_size.title)
+        size = self.text_font.measureText(duration)
+        surface = skia.Surface(int(size+20),int(self.text_font.getSize()+20))
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color(0, 0, 0, 90))
+        blob = skia.TextBlob(duration, self.text_font)
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
+        canvas.drawTextBlob(blob, 10,int(self.text_font.getSize()+5) , paint)
+        duration_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType)
+        return await self.make_round_cornor(duration_img,10)

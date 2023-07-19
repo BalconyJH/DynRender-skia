@@ -73,8 +73,8 @@ class AbstractMajor(ABC):
             if x > x_bound:
                 y+= y_int
                 if y>= y_bound:
-                    blob = skia.TextBlob("...", font)
-                    canvas.drawTextBlob(blob, x, y-y_int, paint)
+                    # blob = skia.TextBlob("...", font)
+                    # canvas.drawTextBlob(blob, x, y-y_int, paint)
                     break
                 x = pos[0]
                 
@@ -93,7 +93,7 @@ class AbstractMajor(ABC):
         paint = skia.Paint(
         Color=skia.Color(*bg_color),
         AntiAlias=True,
-        ImageFilter=skia.ImageFilters.DropShadow(3, 3, 3, 3, skia.Color(120,120,120))
+        ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120,120,120))
         )
         if corner != 0:
             canvas.drawRoundRect(rec, corner, corner, paint)
@@ -248,7 +248,7 @@ class DynMajorArchive(AbstractMajor):
             await self.draw_shadow(self.canvas,(35,25,1010,655),20,background_color)
             rec = skia.Rect.MakeXYWH(35,25,1010,665)
             self.canvas.clipRRect(skia.RRect(rec,20,20),skia.ClipOp.kIntersect)
-            await self.draw_text(self.canvas,self.major.archive.title,self.style.font.font_size.text,(60,650,950,600,10),self.style.color.font_color.text)
+            await self.draw_text(self.canvas,self.major.archive.title,self.style.font.font_size.text,(60,650,980,600,10),self.style.color.font_color.text)
             await paste(self.canvas,cover,(35,25))
             await paste(self.canvas, tv,(905, 455))
             await paste(self.canvas,duration_img,(80, 525))

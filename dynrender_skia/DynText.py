@@ -206,7 +206,7 @@ class BiliText:
                 offset +=1
                 font = self.text_font
             measure = font.measureText(j)
-            if measure != int(measure):
+            if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
                     self.style.font.font_style,

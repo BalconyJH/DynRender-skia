@@ -205,11 +205,11 @@ class RepostHeader:
             if message.name is None:
                 return None
             if message.face is not None:
-                pos = (140,20)
+                pos = 140
                 await self.draw_face(message.face,message.mid)
             else:
-                pos = (35,20)
-                await self.draw_name(message.name,pos)
+                pos = 35
+            await self.draw_name(message.name,pos)
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
             logger.exception(e)
@@ -223,8 +223,28 @@ class RepostHeader:
         await paste(self.canvas,face,(40,10))
     
     
-    async def draw_name(self,name,pos:tuple):
-        pass
+    async def draw_name(self,name,pos:int):
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
+        font_name = None
+        offset = pos
+        font = None
+        for i in name:
+            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(i),
+            ):
+                text_family_name = typeface.getFamilyName()
+                if font_name != text_family_name:
+                    font_name = text_family_name
+                    font = skia.Font(typeface, self.style.font.font_size.name)
+
+            else:
+                font = skia.Font(None,  self.style.font.font_size.name)
+            blob = skia.TextBlob(i, font)
+            self.canvas.drawTextBlob(blob, offset, 70, paint)
+            offset += font.measureText(i)
     
     
     async def circle_face(self, img, size):

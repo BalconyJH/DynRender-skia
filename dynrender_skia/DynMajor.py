@@ -124,6 +124,8 @@ class BiliMajor:
                 return await DynMajorDraw(self.style, dyn_major).run(repost)
             elif major_type == "MAJOR_TYPE_ARCHIVE":
                 return await DynMajorArchive(self.src_path,self.style, dyn_major).run(repost)
+            elif major_type == "MAJOR_TYPE_LIVE_RCMD":
+                return await DynMajorLiveRcmd(self.src_path,self.style, dyn_major).run(repost)
             else:
                 logger.warning(f"{major_type} is not supported")
                 return None
@@ -243,12 +245,14 @@ class DynMajorArchive(AbstractMajor):
         try:
             cover = await get_pictures(f"{self.major.archive.cover}@505w_285h_1c.webp",(1010, 570))
             duration_img = await self.make_duration(duration)
+            tag_img = await self.make_tag()
             await self.draw_shadow(self.canvas,(35,25,1010,655),20,background_color)
             rec = skia.Rect.MakeXYWH(35,25,1010,665)
             self.canvas.clipRRect(skia.RRect(rec,20,20),skia.ClipOp.kIntersect)
             await self.draw_text(self.canvas,self.major.archive.title,self.style.font.font_size.text,(60,650,980,600,10),self.style.color.font_color.text)
             await paste(self.canvas,cover,(35,25))
             await paste(self.canvas, tv,(905, 455))
+            await paste(self.canvas,tag_img,(850, 50))
             await paste(self.canvas,duration_img,(80, 525))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception:
@@ -268,6 +272,22 @@ class DynMajorArchive(AbstractMajor):
         duration_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType)
         return await self.make_round_cornor(duration_img,10)
     
+    async def make_tag(self):
+        self.text_font.setSize(self.style.font.font_size.text)
+        if self.major.archive.badge is not None:
+            tag = self.major.archive.badge.text
+        else:
+            tag = "投稿视频"
+        size = self.text_font.measureText(tag)
+        surface = skia.Surface(int(size+20),int(self.text_font.getSize()+20))
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color(*self.style.color.font_color.name_big_vip))
+        blob = skia.TextBlob(tag, self.text_font)
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
+        canvas.drawTextBlob(blob, 10,int(self.text_font.getSize()+5) , paint)
+        tag_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType)
+        return await self.make_round_cornor(tag_img,10)
+    
 class DynMajorLiveRcmd(AbstractMajor):
     
     async def run(self,repost) -> Optional[np.ndarray]:
@@ -282,9 +302,11 @@ class DynMajorLiveRcmd(AbstractMajor):
             await self.draw_shadow(self.canvas,(35,25,1010,655),20,background_color)
             rec = skia.Rect.MakeXYWH(35,25,1010,665)
             self.canvas.clipRRect(skia.RRect(rec,20,20),skia.ClipOp.kIntersect)
+            tag_img = await self.make_tag()
             await self.draw_text(self.canvas,self.major.live_rcmd.content.live_play_info.title,self.style.font.font_size.text,(60,650,980,600,10),self.style.color.font_color.text)
             await paste(self.canvas,cover,(35,25))
             await paste(self.canvas,watch_show_img,(80, 525))
+            await paste(self.canvas,tag_img,(890, 50))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception:
             logger.exception("Error")
@@ -302,3 +324,20 @@ class DynMajorLiveRcmd(AbstractMajor):
         watch_show_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType)
         return await self.make_round_cornor(watch_show_img,10)
     
+    async def make_tag(self):
+        self.text_font.setSize(self.style.font.font_size.text)
+        size = self.text_font.measureText("直播中")
+        surface = skia.Surface(int(size+20),int(self.text_font.getSize()+20))
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color(*self.style.color.font_color.name_big_vip))
+        blob = skia.TextBlob("直播中", self.text_font)
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
+        canvas.drawTextBlob(blob, 10,int(self.text_font.getSize()+5) , paint)
+        tag_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType)
+        return await self.make_round_cornor(tag_img,10)
+    
+class DynMajorArticle(AbstractMajor):
+    
+    
+    async def run(self,repost):
+        pass

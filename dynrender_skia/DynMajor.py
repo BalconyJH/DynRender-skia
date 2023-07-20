@@ -126,6 +126,8 @@ class BiliMajor:
                 return await DynMajorArchive(self.src_path,self.style, dyn_major).run(repost)
             elif major_type == "MAJOR_TYPE_LIVE_RCMD":
                 return await DynMajorLiveRcmd(self.src_path,self.style, dyn_major).run(repost)
+            elif major_type == "MAJOR_TYPE_OPUS":
+                return await DynMajorArticle(self.src_path,self.style, dyn_major).run(repost)
             else:
                 logger.warning(f"{major_type} is not supported")
                 return None
@@ -339,5 +341,38 @@ class DynMajorLiveRcmd(AbstractMajor):
 class DynMajorArticle(AbstractMajor):
     
     
-    async def run(self,repost):
-        pass
+    async def run(self,repost) -> Optional[np.ndarray]:
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        surface = skia.Surface(1080, 640)
+        self.canvas = surface.getCanvas()
+        self.canvas.clear(skia.Color(*background_color))
+        try:
+            await self.draw_shadow(self.canvas,(35,20,1010,600),20,background_color)
+            
+            rec = skia.Rect.MakeXYWH(35,20,1010,600)
+            self.canvas.clipRRect(skia.RRect(rec,20,20),skia.ClipOp.kIntersect)
+            await self.draw_title_and_desc()
+            await self.make_cover()
+            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        except Exception as e:
+            logger.exception(e)
+            return None
+        
+    async def make_cover(self):
+        if len(self.major.opus.pics) >1:
+            url_list = [f"{i.url}@360w_360h_1c" for i in self.major.opus.pics]
+            imgs = await get_pictures(url_list,(330,330))
+            for i, j in enumerate(imgs):
+                await paste(self.canvas,j, (35 + i * 340, 20))
+        else:
+            img = await get_pictures(f"{self.major.opus.pics[0].url}@647w_150h_1c.webp",(1010,300))
+            await paste(self.canvas,img,(35,20))
+    
+    async def draw_title_and_desc(self):
+        title = self.major.opus.title
+        if len(self.major.opus.pics) >1:
+            await self.draw_text(self.canvas,title,self.style.font.font_size.text,(50,410,960,330,0),self.style.color.font_color.text)
+        else:
+            await self.draw_text(self.canvas,title,self.style.font.font_size.text,(50,390,960,330,0),self.style.color.font_color.text)
+        desc = self.major.opus.summary.text
+        await self.draw_text(self.canvas,desc,self.style.font.font_size.title,(65,460,980,620,int(self.style.font.font_size.title*1.8)),self.style.color.font_color.sub_title)

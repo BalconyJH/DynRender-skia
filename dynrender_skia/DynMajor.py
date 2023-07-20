@@ -232,8 +232,7 @@ class DynMajorDraw:
         return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
     
 class DynMajorArchive(AbstractMajor):
-    
-    
+
     async def run(self,repost):
         duration = self.major.archive.duration_text
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
@@ -268,3 +267,38 @@ class DynMajorArchive(AbstractMajor):
         canvas.drawTextBlob(blob, 10,int(self.text_font.getSize()+5) , paint)
         duration_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType)
         return await self.make_round_cornor(duration_img,10)
+    
+class DynMajorLiveRcmd(AbstractMajor):
+    
+    async def run(self,repost) -> Optional[np.ndarray]:
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        surface = skia.Surface(1080, 695)
+        self.canvas = surface.getCanvas()
+        self.canvas.clear(skia.Color(*background_color))
+        try:
+            cover = await get_pictures(f"{self.major.live_rcmd.content.live_play_info.cover}@505w_285h_1c.webp",(1010, 570))
+            watch_show = self.major.live_rcmd.content.live_play_info.watched_show.text_large
+            watch_show_img = await self.make_watsh_show(watch_show)
+            await self.draw_shadow(self.canvas,(35,25,1010,655),20,background_color)
+            rec = skia.Rect.MakeXYWH(35,25,1010,665)
+            self.canvas.clipRRect(skia.RRect(rec,20,20),skia.ClipOp.kIntersect)
+            await self.draw_text(self.canvas,self.major.live_rcmd.content.live_play_info.title,self.style.font.font_size.text,(60,650,980,600,10),self.style.color.font_color.text)
+            await paste(self.canvas,cover,(35,25))
+            await paste(self.canvas,watch_show_img,(80, 525))
+            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        except Exception:
+            logger.exception("Error")
+            return None
+        
+    async def make_watsh_show(self,watch_show):
+        self.text_font.setSize(self.style.font.font_size.title)
+        size = self.text_font.measureText(watch_show)
+        surface = skia.Surface(int(size+20),int(self.text_font.getSize()+20))
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color(0, 0, 0, 150))
+        blob = skia.TextBlob(watch_show, self.text_font)
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
+        canvas.drawTextBlob(blob, 10,int(self.text_font.getSize()+5) , paint)
+        watch_show_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),colorType=skia.ColorType.kRGBA_8888_ColorType)
+        return await self.make_round_cornor(watch_show_img,10)
+    

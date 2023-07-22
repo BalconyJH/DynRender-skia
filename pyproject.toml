@@ -9,10 +9,10 @@ packages = [{include = "dynrender_skia"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-dynamicadaptor = "^0.4.3"
 skia-python = "^87.5"
 httpx = "^0.24.1"
 emoji = "^2.6.0"
+dynamicadaptor = "^0.4.5"
 
 
 [tool.poetry.group.dev.dependencies]

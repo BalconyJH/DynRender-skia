@@ -229,3 +229,39 @@ class RepostHeader:
         if img is not None:
             img.save(img_path)
         return img
+
+
+class Footer:
+    def __init__(self, static_path: str, style: PolyStyle) -> None:
+        self.src_path = path.join(static_path, "Src")
+        self.style = style
+        self.canvas = None
+
+    async def run(self) -> Optional[np.ndarray]:
+        surface = skia.Surface(1080, 110)
+        self.canvas = surface.getCanvas()
+        self.canvas.clear(skia.Color(*self.style.color.background.normal))
+        try:
+
+            now = strftime("%Y-%m-%d %H:%M:%S", localtime(time()))
+            render_time = f"图片生成于：{now}"
+
+            await DrawText(self.style).draw_text(self.canvas, render_time, self.style.font.font_size.title,
+                                                 (35, 70, 1010, 70, 0), self.style.color.font_color.sub_title)
+            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        except Exception as e:
+            logger.exception(e)
+            return None
+
+    async def draw_shadow(self, canvas, pos: tuple, corner: int, bg_color):
+        x, y, width, height = pos
+        rec = skia.Rect.MakeXYWH(x, y, width, height)
+        paint = skia.Paint(
+            Color=skia.Color(*bg_color),
+            AntiAlias=True,
+            ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120))
+        )
+        if corner != 0:
+            canvas.drawRoundRect(rec, corner, corner, paint)
+        else:
+            canvas.drawRect(rec, paint)

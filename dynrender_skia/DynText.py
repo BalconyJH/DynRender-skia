@@ -3,17 +3,18 @@
 # @Author  : Polyisoprene
 # @File    : DynText.py
 
+import asyncio
 from os import path
+from typing import Optional
 
 import emoji
-import skia
-import asyncio
 import numpy as np
-from typing import Optional
+import skia
+from dynamicadaptor.Content import Text
 from loguru import logger
+
 from .DynStyle import PolyStyle
 from .DynTools import paste, merge_pictures, get_pictures
-from dynamicadaptor.Content import Text
 
 
 class BiliText:

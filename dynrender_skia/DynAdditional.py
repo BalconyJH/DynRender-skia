@@ -216,6 +216,8 @@ class DynAddUgc(AbstractAdditional):
         self.canvas.clear(skia.Color(*background_color))
         try:
             await self.draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
+            rec = skia.Rect.MakeXYWH(35, 20, 1010, 240)
+            self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.make_cover()
             await self.make_title_desc()
             await self.make_sub_tag()
@@ -230,7 +232,7 @@ class DynAddUgc(AbstractAdditional):
 
     async def make_title_desc(self):
         draw = DrawText(self.style)
-        await draw.draw_text(self.canvas, self.additional.ugc.title, self.style.font.font_size.title, (430, 90, 970, 140, int(self.style.font.font_size.time*1.3)), self.style.color.font_color.text)
+        await draw.draw_text(self.canvas, self.additional.ugc.title, self.style.font.font_size.title, (430, 90, 990, 140, int(self.style.font.font_size.time*1.3)), self.style.color.font_color.text)
         await draw.draw_text(self.canvas, self.additional.ugc.desc_second, self.style.font.font_size.title, (430, 200, 950, 200, 0), self.style.color.font_color.sub_title)
 
     async def make_sub_tag(self):

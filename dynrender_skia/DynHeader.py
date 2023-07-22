@@ -191,27 +191,8 @@ class RepostHeader:
         await paste(self.canvas, face, (40, 10))
 
     async def draw_name(self, name, pos: int):
-        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
-        font_name = None
-        offset = pos
-        font = None
-        for i in name:
-            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    self.style.font.font_family,
-                    self.style.font.font_style,
-                    ["zh", "en"],
-                    ord(i),
-            ):
-                text_family_name = typeface.getFamilyName()
-                if font_name != text_family_name:
-                    font_name = text_family_name
-                    font = skia.Font(typeface, self.style.font.font_size.name)
-
-            else:
-                font = skia.Font(None, self.style.font.font_size.name)
-            blob = skia.TextBlob(i, font)
-            self.canvas.drawTextBlob(blob, offset, 70, paint)
-            offset += font.measureText(i)
+        await DrawText(self.style).draw_text(self.canvas, name, self.style.font.font_size.name, (pos, 70, 1010, 70, 0),
+                                             self.style.color.font_color.rich_text)
 
     async def circle_face(self, img, size):
         surface = skia.Surface(img.dimensions().width(),

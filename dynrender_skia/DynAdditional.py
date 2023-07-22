@@ -19,7 +19,8 @@ class AbstractAdditional(ABC):
         self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
                                    self.style.font.font_size.text)
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromName(self.style.font.emoji_font_family, self.style.font.font_style),
+            skia.Typeface.MakeFromName(
+                self.style.font.emoji_font_family, self.style.font.font_style),
             self.style.font.font_size.text)
 
     @abstractmethod
@@ -58,7 +59,8 @@ class AbstractAdditional(ABC):
         paint = skia.Paint(
             Color=skia.Color(*bg_color),
             AntiAlias=True,
-            ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120))
+            ImageFilter=skia.ImageFilters.DropShadow(
+                0, 0, 10, 10, skia.Color(120, 120, 120))
         )
         if corner != 0:
             canvas.drawRoundRect(rec, corner, corner, paint)
@@ -80,6 +82,8 @@ class BiliAdditional:
                 return await DynAddUpOwerLottery(self.src_path, self.style, additional).run(repost)
             elif additional_type == "ADDITIONAL_TYPE_GOODS":
                 return await DynAddGoods(self.src_path, self.style, additional).run(repost)
+            elif additional_type == "ADDITIONAL_TYPE_UGC":
+                return await DynAddUgc(self.src_path, self.style, additional).run(repost)
             else:
                 logger.warning(f"{additional_type} IS NOT SUPPORT NOW")
                 return None
@@ -116,7 +120,8 @@ class DynAddReserve(AbstractAdditional):
             await draw.draw_text(self.canvas, self.additional.reserve.desc3.text, self.style.font.font_size.title,
                                  (105, 170, 810, 170, 0), self.style.color.font_color.rich_text)
 
-            lottery_img = skia.Image.open(path.join(self.src_path, "lottery.png")).resize(40, 40)
+            lottery_img = skia.Image.open(
+                path.join(self.src_path, "lottery.png")).resize(40, 40)
             await paste(self.canvas, lottery_img, (65, 138))
         else:
             await draw.draw_text(self.canvas, self.additional.reserve.title, self.style.font.font_size.time,
@@ -150,7 +155,8 @@ class DynAddUpOwerLottery(AbstractAdditional):
 
         await draw.draw_text(self.canvas, self.additional.upower_lottery.desc.text, self.style.font.font_size.title,
                              (105, 160, 810, 160, 0), self.style.color.font_color.rich_text)
-        lottery_img = skia.Image.open(path.join(self.src_path, "lottery.png")).resize(40, 40)
+        lottery_img = skia.Image.open(
+            path.join(self.src_path, "lottery.png")).resize(40, 40)
         await paste(self.canvas, lottery_img, (65, 128))
 
 
@@ -166,7 +172,8 @@ class DynAddGoods(AbstractAdditional):
             await self.make_cover()
             await self.make_title_desc()
             await DrawText(self.style).draw_text(self.canvas, self.additional.goods.head_text,
-                                                 self.style.font.font_size.sub_title, (45, 30, 1010, 80, 0),
+                                                 self.style.font.font_size.sub_title, (
+                                                     45, 30, 1010, 80, 0),
                                                  self.style.color.font_color.sub_title)
             await self.make_badge("去看看", self.style.font.font_size.time, (860, 125), (155, 75), (25, 50))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
@@ -200,3 +207,41 @@ class DynAddGoods(AbstractAdditional):
         await draw.draw_text(self.canvas, price, self.style.font.font_size.title,
                              (295, 210, 800, 210, 0), self.style.color.font_color.rich_text)
 
+
+class DynAddUgc(AbstractAdditional):
+    async def run(self, repost):
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        surface = skia.Surface(1080, 280)
+        self.canvas = surface.getCanvas()
+        self.canvas.clear(skia.Color(*background_color))
+        try:
+            await self.draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
+            await self.make_cover()
+            await self.make_title_desc()
+            await self.make_sub_tag()
+            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        except Exception as e:
+            logger.exception(e)
+            return None
+
+    async def make_cover(self):
+        cover = await get_pictures(f"{self.additional.ugc.cover}@340w_195h_1c.webp")
+        await paste(self.canvas, await self.make_round_cornor(cover, 10), (60, 45))
+
+    async def make_title_desc(self):
+        draw = DrawText(self.style)
+        await draw.draw_text(self.canvas, self.additional.ugc.title, self.style.font.font_size.title, (430, 90, 970, 140, int(self.style.font.font_size.time*1.3)), self.style.color.font_color.text)
+        await draw.draw_text(self.canvas, self.additional.ugc.desc_second, self.style.font.font_size.title, (430, 200, 950, 200, 0), self.style.color.font_color.sub_title)
+
+    async def make_sub_tag(self):
+        self.text_font.setSize(self.style.font.font_size.sub_title)
+        size = self.text_font.measureText(self.additional.ugc.duration)
+        surface = skia.Surface(int(size + 20), int(self.text_font.getSize() + 20))
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color(0, 0, 0, 150))
+        blob = skia.TextBlob(self.additional.ugc.duration, self.text_font)
+        paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
+        canvas.drawTextBlob(blob, 10, int(self.text_font.getSize() + 5), paint)
+        sub_tag_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+                                             colorType=skia.ColorType.kRGBA_8888_ColorType)
+        await paste(self.canvas, await self.make_round_cornor(sub_tag_img, 10), (400-sub_tag_img.width()-15, 190))

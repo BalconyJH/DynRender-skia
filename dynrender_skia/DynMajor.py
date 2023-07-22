@@ -213,7 +213,6 @@ class DynMajorDraw:
         img = await get_pictures(img_url)
         if img is not None:
             img = img.resize(width=1008, height=int(img.height() * 1008 / img.width()))
-            # img_size = img.dimensions()
             surface = skia.Surface(1080, img.height() + 20)
             canvas = surface.getCanvas()
             canvas.clear(skia.Color(*background_color))

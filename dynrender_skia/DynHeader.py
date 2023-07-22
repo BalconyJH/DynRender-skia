@@ -3,13 +3,14 @@ from os import path
 from time import localtime, strftime, time
 from typing import Optional
 
-import httpx
 import numpy as np
 import skia
 from dynamicadaptor.Header import Head
 from .DynConfig import logger
 from .DynStyle import PolyStyle
-from .DynTools import get_pictures,paste
+from .DynTools import get_pictures, paste
+from .DynTools import DrawText
+
 
 class BiliHeader:
     """渲染动态的头部"""
@@ -34,7 +35,7 @@ class BiliHeader:
                                           self.get_face_and_pendant(True),
                                           self.get_face_and_pendant()
                                           )
-            await self.past_face(result[3])
+            await self.past_face()
             await self.paste_pendant(result[4])
             await self.paste_vip()
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
@@ -68,7 +69,7 @@ class BiliHeader:
             img = skia.Image.open(img_path).resize(45, 45)
             await self.paste(img, (120, 330))
 
-    async def past_face(self, face):
+    async def past_face(self):
         face = await self.get_face_and_pendant(True)
         if face:
             face = await self.circle_face(face, 120)
@@ -129,13 +130,8 @@ class BiliHeader:
         else:
             pub_time = strftime("%Y-%m-%d %H:%M:%S", localtime(time()))
 
-        await self.draw_text(pub_time,
-                             self.style.font.font_family,
-                             self.style.font.font_style,
-                             skia.Color(
-                                 *self.style.color.font_color.sub_title),
-                             self.style.font.font_size.time,
-                             200, 350)
+        await DrawText(self.style).draw_text(self.canvas, pub_time, self.style.font.font_size.time,
+                                             (200, 350, 1010, 350, 0,), self.style.color.font_color.sub_title)
 
     async def paste_logo(self) -> None:
         logo = skia.Image.open(path.join(self.src_path, "bilibili.png")).resize(231, 105)
@@ -152,35 +148,9 @@ class BiliHeader:
                 color = self.style.color.font_color.name_small_vip
         else:
             color = self.style.color.font_color.text
-        await self.draw_text(self.message.name,
-                             self.style.font.font_family,
-                             self.style.font.font_style,
-                             skia.Color(*color),
-                             self.style.font.font_size.name,
-                             200, 300)
 
-    async def draw_text(self, text, font_family, font_style, font_color, font_size, x, y):
-        paint = skia.Paint(AntiAlias=True, Color=font_color)
-        font_name = None
-        offset = x
-        font = None
-        for i in text:
-            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    font_family,
-                    font_style,
-                    ["zh", "en"],
-                    ord(i),
-            ):
-                text_family_name = typeface.getFamilyName()
-                if font_name != text_family_name:
-                    font_name = text_family_name
-                    font = skia.Font(typeface, font_size)
-
-            else:
-                font = skia.Font(None, font_size)
-            blob = skia.TextBlob(i, font)
-            self.canvas.drawTextBlob(blob, offset, y, paint)
-            offset += font.measureText(i)
+        await DrawText(self.style).draw_text(self.canvas, self.message.name, self.style.font.font_size.name,
+                                             (200, 300, 1010, 300, 0), color)
 
     async def paste(self, image, position: tuple) -> None:
         x, y = position
@@ -191,14 +161,13 @@ class BiliHeader:
             0, 0, img_width, img_height), rec)
 
 
-
 class RepostHeader:
-    def __init__(self,static_path: str, style: PolyStyle) -> None:
+    def __init__(self, static_path: str, style: PolyStyle) -> None:
         self.style = style
         self.static_path = static_path
-    
-    async def run(self,message:Head) -> Optional[np.ndarray]:
-        surface = skia.Surface(1080,100)
+
+    async def run(self, message: Head) -> Optional[np.ndarray]:
+        surface = skia.Surface(1080, 100)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*self.style.color.background.repost))
         try:
@@ -206,24 +175,22 @@ class RepostHeader:
                 return None
             if message.face is not None:
                 pos = 140
-                await self.draw_face(message.face,message.mid)
+                await self.draw_face(message.face, message.mid)
             else:
                 pos = 35
-            await self.draw_name(message.name,pos)
+            await self.draw_name(message.name, pos)
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
             logger.exception(e)
             return None
-    
-    
-    async def draw_face(self,url,mid):
-        img = await self.get_face(mid,url)
+
+    async def draw_face(self, url, mid):
+        img = await self.get_face(mid, url)
         if img is not None:
-            face = await self.circle_face(img,80)
-        await paste(self.canvas,face,(40,10))
-    
-    
-    async def draw_name(self,name,pos:int):
+            face = await self.circle_face(img, 80)
+        await paste(self.canvas, face, (40, 10))
+
+    async def draw_name(self, name, pos: int):
         paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
         font_name = None
         offset = pos
@@ -241,12 +208,11 @@ class RepostHeader:
                     font = skia.Font(typeface, self.style.font.font_size.name)
 
             else:
-                font = skia.Font(None,  self.style.font.font_size.name)
+                font = skia.Font(None, self.style.font.font_size.name)
             blob = skia.TextBlob(i, font)
             self.canvas.drawTextBlob(blob, offset, 70, paint)
             offset += font.measureText(i)
-    
-    
+
     async def circle_face(self, img, size):
         surface = skia.Surface(img.dimensions().width(),
                                img.dimensions().height())
@@ -270,11 +236,11 @@ class RepostHeader:
         canvas.drawCircle(radius, radius, radius - 2, paint)
         return skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
                                     colorType=skia.ColorType.kRGBA_8888_ColorType).resize(size, size)
-    
-    async def get_face(self,mid,url):
+
+    async def get_face(self, mid, url):
         img_name = f"{mid}.webp"
         img_url = f"{url}@240w_240h_1c_1s.webp"
-        img_path = path.join(self.static_path,"Cache","Face", img_name)
+        img_path = path.join(self.static_path, "Cache", "Face", img_name)
         if path.exists(img_path):
             if time() - int(path.getmtime(img_path)) <= 43200:
                 return skia.Image.open(img_path)

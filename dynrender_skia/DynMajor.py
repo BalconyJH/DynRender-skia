@@ -14,7 +14,7 @@ import emoji
 from typing import Optional
 from loguru import logger
 from .DynStyle import PolyStyle
-from .DynTools import paste, merge_pictures, get_pictures
+from .DynTools import paste, get_pictures
 from dynamicadaptor.Majors import Major
 from math import ceil
 

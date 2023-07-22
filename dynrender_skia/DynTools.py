@@ -46,8 +46,13 @@ async def merge_pictures(img_list: List[ndarray]) -> ndarray:
 
 
 async def paste(src, target, position: tuple) -> None:
-    x, y = position
-    img_height = target.dimensions().fHeight
-    img_width = target.dimensions().fWidth
-    rec = skia.Rect.MakeXYWH(x, y, img_width, img_height)
-    src.drawImageRect(target, skia.Rect(0, 0, img_width, img_height), rec)
+    try:
+        if target is not None:
+            x, y = position
+            img_height = target.dimensions().fHeight
+            img_width = target.dimensions().fWidth
+            rec = skia.Rect.MakeXYWH(x, y, img_width, img_height)
+            src.drawImageRect(target, skia.Rect(0, 0, img_width, img_height), rec)
+    except Exception as e:
+        logger.exception(e)
+

@@ -45,13 +45,13 @@ files = [
 
 [[package]]
 name = "dynamicadaptor"
-version = "0.4.4"
+version = "0.4.5"
 description = ""
 optional = false
 python-versions = ">=3.8.0,<4.0.0"
 files = [
-    {file = "dynamicadaptor-0.4.4-py3-none-any.whl", hash = "sha256:a03c4c2be8d00865135e1af7ba1b59384e595347444af316b689d4cef6197701"},
-    {file = "dynamicadaptor-0.4.4.tar.gz", hash = "sha256:b30e8011627269b6c0cbbbbdb06ec4a8e937c45994f8a4e8a6aa87e38161de82"},
+    {file = "dynamicadaptor-0.4.5-py3-none-any.whl", hash = "sha256:7da64ca7237120fe79bab9b3e631ee465ac0976aca332a14b30e39755d469f8b"},
+    {file = "dynamicadaptor-0.4.5.tar.gz", hash = "sha256:2d3186a8582350bc1ff2831d61dd95d23b7829aed647d1916e157e8872363326"},
 ]
 
 [package.dependencies]

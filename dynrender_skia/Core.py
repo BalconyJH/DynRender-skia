@@ -10,12 +10,15 @@ import asyncio
 
 from dynamicadaptor.Message import RenderMessage
 
+from .DynAdditional import BiliAdditional
 from .DynConfig import MakeStaticFile, SetDynStyle
-from .DynHeader import BiliHeader
-from .DynText import BiliText
-from .DynTools import merge_pictures
+from .DynHeader import BiliHeader, Footer
 from .DynMajor import BiliMajor
 from .DynRepost import BiliRepost
+from .DynText import BiliText
+from .DynTools import merge_pictures
+
+
 class DynRender:
     def __init__(self, font_family: str = "Noto Sans CJK SC",
                  emoji_font_family: str = "Noto Color Emoji",
@@ -38,9 +41,13 @@ class DynRender:
             tasks.append(BiliText(self.static_path, self.style).run(message.text))
         if message.major is not None:
             tasks.append(BiliMajor(self.static_path, self.style).run(message.major))
-            
+
         if message.forward is not None:
             tasks.append(BiliRepost(self.static_path, self.style).run(message.forward))
-            
+
+        if message.additional is not None:
+            tasks.append(BiliAdditional(self.static_path, self.style).run(message.additional))
+
+        tasks.append(Footer(self.static_path, self.style).run())
         result = await asyncio.gather(*tasks)
         return await merge_pictures(result)

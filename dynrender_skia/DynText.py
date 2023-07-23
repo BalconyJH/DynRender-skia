@@ -3,17 +3,18 @@
 # @Author  : Polyisoprene
 # @File    : DynText.py
 
+import asyncio
 from os import path
+from typing import Optional
 
 import emoji
-import skia
-import asyncio
 import numpy as np
-from typing import Optional
+import skia
+from dynamicadaptor.Content import Text
 from loguru import logger
+
 from .DynStyle import PolyStyle
 from .DynTools import paste, merge_pictures, get_pictures
-from dynamicadaptor.Content import Text
 
 
 class BiliText:
@@ -205,7 +206,6 @@ class BiliText:
             else:
                 offset +=1
                 font = self.text_font
-            measure = font.measureText(j)
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
@@ -216,7 +216,7 @@ class BiliText:
                     font = skia.Font(typeface, self.style.font.font_size.text)
                 else:
                     font = self.text_font
-                measure = font.measureText(j)
+            measure = font.measureText(j)
             blob = skia.TextBlob(j, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)
             self.offset += measure

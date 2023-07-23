@@ -31,7 +31,7 @@ yum install mesa-libGL -y
 
 ## 安装必要依赖
 ```bash
-pip install dynamicadaptor skia-python
+pip install dynamicadaptor dynrender-skia
 ```
 
 ## 测试

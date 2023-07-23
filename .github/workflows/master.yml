@@ -33,7 +33,7 @@ jobs:
     - name : Realease whl
       uses : ncipollo/release-action@v1
       with :
-        artifacts: "*/*.whl,*/*.zip,*/*.tar.gz"
+        artifacts: "./dist/*.whl,./dist/*.tar.gz"
       
       
     - name : Publish to pypi

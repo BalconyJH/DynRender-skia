@@ -29,7 +29,8 @@ class BiliRepost:
             tasks.append(BiliText(self.static_path, self.style).run(message.text, repost=True))
         if message.major is not None:
             tasks.append(BiliMajor(self.static_path, self.style).run(message.major, True))
-            if message.additional is not None:
-                tasks.append(BiliAdditional(self.static_path, self.style).run(message.additional, True))
+        if message.additional is not None:
+            
+            tasks.append(BiliAdditional(self.static_path, self.style).run(message.additional, True))
         result = await asyncio.gather(*tasks)
         return await merge_pictures(result)

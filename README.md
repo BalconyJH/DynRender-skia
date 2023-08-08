@@ -40,8 +40,9 @@ pip install dynamicadaptor dynrender-skia
 import httpx
 import asyncio
 import skia
-from dynrender_skia.Core import DynRender
+from dynrender.Core import DynRender
 from dynamicadaptor.DynamicConversion import formate_message
+
 
 # 定义异步函数，用于执行Web测试
 async def web_test():
@@ -51,7 +52,7 @@ async def web_test():
         "referer": f"https://t.bilibili.com/{dyn_id}",
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
     }
-    
+
     # 发起HTTP请求并解析JSON响应
     message_json = httpx.get(url, headers=headers).json()
 
@@ -66,6 +67,7 @@ async def web_test():
 
     # 保存图像为PNG文件
     img.save("1.png")
+
 
 # 当文件作为主程序执行时
 if __name__ == "__main__":

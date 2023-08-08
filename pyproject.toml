@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "dynrender-skia"
+name = "dynrender"
 version = "0.1.7"
 description = "使用skia-python将BiliBili动态渲染为图片"
 authors = ["DMC <lzxder@outlook.com>"]
 license = "GNU GPLv3"
 readme = "README.md"
-packages = [{include = "dynrender_skia"}]
+packages = [{include = "dynrender"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"

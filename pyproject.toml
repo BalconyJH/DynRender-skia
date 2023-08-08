@@ -1,28 +1,24 @@
-[tool.pdm.build]
-includes = ["dynrender"]
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
-[project]
+[tool.poetry]
 name = "dynrender"
 version = "0.1.7"
 description = "使用skia-python将BiliBili动态渲染为图片"
-authors = [
-    {name = "BalconyJH", email = "balconyjh@gmail.com"},
-    {name = "DMC", email = "lzxder@outlook.com"},
-]
-dependencies = [
-    "skia-python<88.0,>=87.5",
-    "httpx<1.0.0,>=0.24.1",
-    "emoji<3.0.0,>=2.6.0",
-    "dynamicadaptor<1.0.0,>=0.4.5",
-    "bilirpc<1.0.0,>=0.1.3",
-]
-requires-python = ">=3.8,<4.0"
+authors = ["DMC <lzxder@outlook.com>"]
+license = "GNU GPLv3"
 readme = "README.md"
-license = {text = "GNU GPLv3"}
+packages = [{include = "dynrender"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+skia-python = "^87.5"
+httpx = "^0.24.1"
+emoji = "^2.6.0"
+dynamicadaptor = "^0.4.5"
+bilirpc = "^0.1.3"
 
 
-[project.group.dev.dependencies]
+[tool.poetry.group.dev.dependencies]
 viztracer = "^0.15.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -16,30 +16,17 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-
+  pypi-publish:
+    name: upload release to PyPI
     runs-on: ubuntu-latest
-
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'
-    - name: install poetry
-      run: pipx install poetry
-      shell: bash
+      - uses: actions/checkout@v3
 
-    - name : InstallDependance
-      run: poetry install --without dev
-      shell: bash
+      - uses: pdm-project/setup-pdm@v3
 
-    - name : BuildDist
-      run : poetry build
-      shell: bash       
+      - name: Publish package distributions to PyPI
+        run: pdm publish
 
-    - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}

@@ -12,7 +12,7 @@ python = "^3.8"
 skia-python = "^87.5"
 httpx = "^0.24.1"
 emoji = "^2.6.0"
-dynamicadaptor = "^0.4.5"
+dynamicadaptor = "^0.4.9"
 bilirpc = "^0.1.3"
 
 

@@ -6,7 +6,7 @@ groups = ["default"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:d3805cdb74bcaca20fdd978d1e7befd6a164d27447d942a77ec3b14f379c8c6e"
+content_hash = "sha256:b24b154f173c7acce7f58d03851027d43a6ac2aaecada93ed8508c5809d2d1d1"
 
 [[package]]
 name = "anyio"
@@ -25,15 +25,17 @@ files = [
 
 [[package]]
 name = "bilirpc"
-version = "0.1.3"
+version = "1.4"
 requires_python = ">=3.8,<4.0"
-summary = ""
+summary = "B站grpc请求2"
 dependencies = [
-    "grpcio-tools<2.0.0,>=1.49.1",
+    "grpcio-tools<2.0.0,>=1.56.2",
+    "grpcio<2.0.0,>=1.56.2",
+    "protobuf<5.0.0,>=4.23.4",
 ]
 files = [
-    {file = "BiliRpc-0.1.3-py3-none-any.whl", hash = "sha256:643d889051eb75e45e64402c856862246637459338dd93b3c22c10f5d0206bfe"},
-    {file = "BiliRpc-0.1.3.tar.gz", hash = "sha256:bbb4968c7f93aac551aa10a68abeeec442618d358ba182a1c486b724e0175d98"},
+    {file = "bilirpc-1.4-py3-none-any.whl", hash = "sha256:570dcd1d890c535dcf08fc21a41ed57a91f7e8ce97c10314167b39167829b1e4"},
+    {file = "bilirpc-1.4.tar.gz", hash = "sha256:477449ad84d8ad3ae9fad4e37837fb9f345e54dbd27638c59ad6f487f168c97c"},
 ]
 
 [[package]]
@@ -58,7 +60,7 @@ files = [
 
 [[package]]
 name = "dynamicadaptor"
-version = "0.4.7"
+version = "0.4.9"
 requires_python = ">=3.8.0,<4.0.0"
 summary = ""
 dependencies = [
@@ -66,8 +68,8 @@ dependencies = [
     "pydantic<2.0.0,>=1.10.4",
 ]
 files = [
-    {file = "dynamicadaptor-0.4.7-py3-none-any.whl", hash = "sha256:e92aabfeee8e9d7ebe7cd8622bef695e35c38f89a6518c50ca7ba3227a73b523"},
-    {file = "dynamicadaptor-0.4.7.tar.gz", hash = "sha256:b8039f122587ace970e296591e62d0274591e124b77611f6e5bd0ddbe335dd2c"},
+    {file = "dynamicadaptor-0.4.9-py3-none-any.whl", hash = "sha256:c9be006dc69eb7cc0270a8399507030c3d645989e53cfce0cbbcba6467d88909"},
+    {file = "dynamicadaptor-0.4.9.tar.gz", hash = "sha256:d2164abb235cbc2691e03d0b16d0acb36cc7fc309ad0d99d8b679ed820a4b4d9"},
 ]
 
 [[package]]
@@ -338,12 +340,6 @@ files = [
     {file = "pydantic-1.10.12-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:ba5b2e6fe6ca2b7e013398bc7d7b170e21cce322d266ffcd57cca313e54fb246"},
     {file = "pydantic-1.10.12-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:2a7bac939fa326db1ab741c9d7f44c565a1d1e80908b3797f7f81a4f86bc8d33"},
     {file = "pydantic-1.10.12-cp311-cp311-win_amd64.whl", hash = "sha256:87afda5539d5140cb8ba9e8b8c8865cb5b1463924d38490d73d3ccfd80896b3f"},
-    {file = "pydantic-1.10.12-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:549a8e3d81df0a85226963611950b12d2d334f214436a19537b2efed61b7639a"},
-    {file = "pydantic-1.10.12-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:598da88dfa127b666852bef6d0d796573a8cf5009ffd62104094a4fe39599565"},
-    {file = "pydantic-1.10.12-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ba5c4a8552bff16c61882db58544116d021d0b31ee7c66958d14cf386a5b5350"},
-    {file = "pydantic-1.10.12-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:c79e6a11a07da7374f46970410b41d5e266f7f38f6a17a9c4823db80dadf4303"},
-    {file = "pydantic-1.10.12-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:ab26038b8375581dc832a63c948f261ae0aa21f1d34c1293469f135fa92972a5"},
-    {file = "pydantic-1.10.12-cp37-cp37m-win_amd64.whl", hash = "sha256:e0a16d274b588767602b7646fa05af2782576a6cf1022f4ba74cbb4db66f6ca8"},
     {file = "pydantic-1.10.12-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:6a9dfa722316f4acf4460afdf5d41d5246a80e249c7ff475c43a3a1e9d75cf62"},
     {file = "pydantic-1.10.12-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:a73f489aebd0c2121ed974054cb2759af8a9f747de120acd2c3394cf84176ccb"},
     {file = "pydantic-1.10.12-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6b30bcb8cbfccfcf02acb8f1a261143fab622831d9c0989707e0e659f77a18e0"},

@@ -59,13 +59,13 @@ files = [
 
 [[package]]
 name = "dynamicadaptor"
-version = "0.4.7"
+version = "0.4.9"
 description = ""
 optional = false
 python-versions = ">=3.8.0,<4.0.0"
 files = [
-    {file = "dynamicadaptor-0.4.7-py3-none-any.whl", hash = "sha256:e92aabfeee8e9d7ebe7cd8622bef695e35c38f89a6518c50ca7ba3227a73b523"},
-    {file = "dynamicadaptor-0.4.7.tar.gz", hash = "sha256:b8039f122587ace970e296591e62d0274591e124b77611f6e5bd0ddbe335dd2c"},
+    {file = "dynamicadaptor-0.4.9-py3-none-any.whl", hash = "sha256:c9be006dc69eb7cc0270a8399507030c3d645989e53cfce0cbbcba6467d88909"},
+    {file = "dynamicadaptor-0.4.9.tar.gz", hash = "sha256:d2164abb235cbc2691e03d0b16d0acb36cc7fc309ad0d99d8b679ed820a4b4d9"},
 ]
 
 [package.dependencies]
@@ -581,4 +581,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "bf47ba2bc91e7eb52bfe88c75b37ed05e0c53534d15c98b67977524a35fbc453"
+content-hash = "342fd96f300a35a0695dc0c4e398bd66e61b8e96e13d289fedc3185c6365914e"

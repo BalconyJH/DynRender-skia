@@ -172,6 +172,8 @@ class BiliMajor:
                 return await DynMajorUgc(self.src_path, self.style, dyn_major).run(repost)
             elif major_type == "MAJOR_TYPE_LIVE":
                 return await DynMajorLive(self.src_path, self.style, dyn_major).run(repost)
+            elif major_type == "MAJOR_TYPE_NONE":
+                return await DynMajorNone(self.src_path, self.style, dyn_major).run(repost)
             else:
                 
                 logger.warning(f"{major_type} is not supported")
@@ -631,3 +633,21 @@ class DynMajorLive(AbstractMajor):
         except Exception as e:
             logger.exception(e)
             return None
+class DynMajorNone(AbstractMajor):
+    
+    async def run(self, repost):
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        surface = skia.Surface(1080, 100)
+        self.canvas = surface.getCanvas()
+        self.canvas.clear(skia.Color(*background_color))
+        try:
+            await self.make_tips()
+            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        except Exception as e:
+            logger.exception(e)
+            return None
+        
+    async def make_tips(self):
+        error = skia.Image.open(path.join(self.src_path, "error.png")).resize(40, 40)
+        await self.draw_text(self.canvas,self.major.none.tips,self.style.font.font_size.text,(90,60,1080,40,0),self.style.color.font_color.sub_title)
+        await paste(self.canvas, error, (40, 30))

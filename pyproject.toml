@@ -36,28 +36,5 @@ bilirpc = "^1.4"
 viztracer = "^0.15.6"
 
 
-[tool.pdm.build]
-includes = ["dynrender"]
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[project]
-authors = [
-    {name = "DMC", email = "lzxder@outlook.com"},
-]
-requires-python = ">=3.8,<4.0"
-dependencies = [
-    "skia-python<88.0,>=87.5",
-    "httpx<1.0.0,>=0.24.1",
-    "emoji<3.0.0,>=2.6.0",
-    "dynamicadaptor<1.0.0,>=0.4.5",
-]
-name = "dynrender"
-version = "0.1.7"
-description = "使用skia-python将BiliBili动态渲染为图片"
-readme = "README.md"
-license = {text = "GNU GPLv3"}
-
 [project.group.dev.dependencies]
 viztracer = "^0.15.6"

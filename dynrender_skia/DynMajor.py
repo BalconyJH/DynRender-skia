@@ -28,20 +28,16 @@ class AbstractMajor(ABC):
         self.style = style
         self.major = dyn_major
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromFile(
-                self.style.font.font_family.as_uri(), self.style.font.font_style
-            )
-            if isinstance(self.style.font.font_family, Path)
+            skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+            if self.style.font.font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
             ),
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromFile(
-                self.style.font.emoji_font_family.as_uri(), self.style.font.font_style
-            )
-            if isinstance(self.style.font.font_family, Path)
+            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family, 0)
+            if self.style.font.font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.emoji_font_family, self.style.font.font_style
             ),

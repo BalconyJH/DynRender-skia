@@ -179,11 +179,15 @@ class BiliText:
         offset = 45 + topic_size + 10
         font = None
         for i in topic:
-            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                self.style.font.font_family,
-                self.style.font.font_style,
-                ["zh", "en"],
-                ord(i),
+            if typeface := (
+                skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                if self.style.font.font_family.startswith("file://")
+                else skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(i),
+                )
             ):
                 text_family_name = typeface.getFamilyName()
                 if font_name != text_family_name:
@@ -243,11 +247,15 @@ class BiliText:
                 offset += 1
                 font = self.text_font
             if font.textToGlyphs(j)[0] == 0:
-                if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    self.style.font.font_family,
-                    self.style.font.font_style,
-                    ["zh", "en"],
-                    ord(j[0]),
+                if typeface := (
+                    skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                    if self.style.font.font_family.startswith("file://")
+                    else skia.FontMgr().matchFamilyStyleCharacter(
+                        self.style.font.font_family,
+                        self.style.font.font_style,
+                        ["zh", "en"],
+                        ord(j[0]),
+                    )
                 ):
                     font = skia.Font(typeface, self.style.font.font_size.text)
                 else:
@@ -311,11 +319,15 @@ class BiliText:
         font_name = None
         font = None
         for i in text_detail.text:
-            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                self.style.font.font_family,
-                self.style.font.font_style,
-                ["zh", "en"],
-                ord(i),
+            if typeface := (
+                skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                if self.style.font.font_family.startswith("file://")
+                else skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(i),
+                )
             ):
                 text_family_name = typeface.getFamilyName()
                 if font_name != text_family_name:

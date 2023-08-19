@@ -45,7 +45,7 @@ class BiliText:
         )
         self.emoji_font = skia.Font(
             skia.Typeface.MakeFromFile(self.style.font.emoji_font_family)
-            if "/" in self.style.font.
+            if "/" in self.style.font.emoji_font_family
             else skia.Typeface.MakeFromName(
                 self.style.font.emoji_font_family, self.style.font.font_style
             ),
@@ -83,7 +83,7 @@ class BiliText:
         result = await asyncio.gather(
             self.get_emoji(emoji_list, emoji_name_list), self.get_rich_pic(rich_list)
         )
-        await self.draw_text(result[1], dyn_text)
+        await self.draw_text(result[1], dyn_text)  # type: ignore
         if self.offset != 40:
             self.image_list.append(
                 self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
@@ -106,9 +106,9 @@ class BiliText:
             result = await get_pictures(emoji_url_list, (icon_size, icon_size))
             for i, j in enumerate(emoji_index):
                 emoji_path = path.join(self.emoji_path, f"{emoji_name[j]}.png")
-                emoji_pic.insert(j, result[i])
-                if result[i] is not None:
-                    result[i].save(emoji_path)
+                emoji_pic.insert(j, result[i])  # type: ignore
+                if result[i] is not None:  # type: ignore
+                    result[i].save(emoji_path)  # type: ignore
         for i, j in enumerate(emoji_name):
             temp[j] = emoji_pic[i]
         self.emoji_dict = temp
@@ -169,7 +169,7 @@ class BiliText:
         icon_size = int(topic_size * 1.5)
         surface = skia.Surface(1080, icon_size + 10)
         canvas = surface.getCanvas()
-        canvas.clear(skia.Color(*self.bg_color))
+        canvas.clear(skia.Color(*self.bg_color))  # type: ignore
         await paste(canvas, topic_img, (45, 15))
 
         paint = skia.Paint(
@@ -194,7 +194,7 @@ class BiliText:
                     font_name = text_family_name
                 font = skia.Font(typeface, topic_size)
             else:
-                font = skia.Font(None, topic_size)
+                font = skia.Font(None, topic_size)  # type: ignore
             blob = skia.TextBlob(i, font)
             canvas.drawTextBlob(blob, offset, 50, paint)
             offset += font.measureText(i)
@@ -203,8 +203,8 @@ class BiliText:
         )
 
     async def draw_text(self, rich_list: list, dyn_text: Text):
-        self.canvas.clear(skia.Color(*self.bg_color))
-        for i in dyn_text.rich_text_nodes:
+        self.canvas.clear(skia.Color(*self.bg_color))  # type: ignore
+        for i in dyn_text.rich_text_nodes:  # type: ignore
             if i.type in {
                 "RICH_TEXT_NODE_TYPE_AT",
                 "RICH_TEXT_NODE_TYPE_TEXT",
@@ -231,7 +231,7 @@ class BiliText:
             j = dyn_detail[offset]
             if j == "\n":
                 self.canvas.saveLayer()
-                self.canvas.clear(skia.Color(*self.bg_color))
+                self.canvas.clear(skia.Color(*self.bg_color))  # type: ignore
                 self.image_list.append(
                     self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
                 )
@@ -267,7 +267,7 @@ class BiliText:
             if self.offset > self.x_bound:
                 self.offset = 40
                 self.canvas.saveLayer()
-                self.canvas.clear(skia.Color(*self.bg_color))
+                self.canvas.clear(skia.Color(*self.bg_color))  # type: ignore
                 self.image_list.append(
                     self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
                 )
@@ -281,7 +281,7 @@ class BiliText:
             self.offset += img_size + 5
             if self.offset >= self.x_bound:
                 self.canvas.saveLayer()
-                self.canvas.clear(skia.Color(*self.bg_color))
+                self.canvas.clear(skia.Color(*self.bg_color))  # type: ignore
                 self.image_list.append(
                     self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
                 )
@@ -307,7 +307,7 @@ class BiliText:
         self.offset += icon.dimensions().width() + 5
         if self.offset >= self.x_bound:
             self.canvas.saveLayer()
-            self.canvas.clear(skia.Color(*self.bg_color))
+            self.canvas.clear(skia.Color(*self.bg_color))  # type: ignore
             self.image_list.append(
                 self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
             )
@@ -334,13 +334,13 @@ class BiliText:
                     font_name = text_family_name
                 font = skia.Font(typeface, self.style.font.font_size.text)
             else:
-                font = skia.Font(None, self.style.font.font_size.text)
+                font = skia.Font(None, self.style.font.font_size.text)  # type: ignore
             blob = skia.TextBlob(i, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)
             self.offset += font.measureText(i)
             if self.offset >= self.x_bound:
                 self.canvas.saveLayer()
-                self.canvas.clear(skia.Color(*self.bg_color))
+                self.canvas.clear(skia.Color(*self.bg_color))  # type: ignore
                 self.image_list.append(
                     self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
                 )

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 @File    :   DynRepost.py
 @Time    :   2023/07/19 15:33:23
 @Author  :   Polyisoprene 
 @Version :   1.0
 @Desc    :   None
-'''
+"""
 import asyncio
 
 from dynamicadaptor.Repost import Forward
@@ -26,11 +26,18 @@ class BiliRepost:
     async def run(self, message: Forward):
         tasks = [RepostHeader(self.static_path, self.style).run(message.header)]
         if message.text is not None:
-            tasks.append(BiliText(self.static_path, self.style).run(message.text, repost=True))
+            tasks.append(
+                BiliText(self.static_path, self.style).run(message.text, repost=True)
+            )
         if message.major is not None:
-            tasks.append(BiliMajor(self.static_path, self.style).run(message.major, True))
+            tasks.append(
+                BiliMajor(self.static_path, self.style).run(message.major, True)
+            )
         if message.additional is not None:
-            
-            tasks.append(BiliAdditional(self.static_path, self.style).run(message.additional, True))
+            tasks.append(
+                BiliAdditional(self.static_path, self.style).run(
+                    message.additional, True
+                )
+            )
         result = await asyncio.gather(*tasks)
         return await merge_pictures(result)

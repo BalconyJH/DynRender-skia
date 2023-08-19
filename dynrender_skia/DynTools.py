@@ -88,7 +88,7 @@ class DrawText:
         self.text_font.setSize(font_size)
         self.emoji_font.setSize(font_size)
         text = text.replace("\t", "")
-        emoji_info = await self.get_emoji_text(text)
+        emoji_info = await self.get_emoji_text(text)  # type: ignore
         total = len(text) - 1
         x, y, x_bound, y_bound, y_int = pos
         offset = 0

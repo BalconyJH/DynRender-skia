@@ -192,7 +192,7 @@ class BiliText:
                 text_family_name = typeface.getFamilyName()
                 if font_name != text_family_name:
                     font_name = text_family_name
-                    font = skia.Font(typeface, topic_size)
+                font = skia.Font(typeface, topic_size)
             else:
                 font = skia.Font(None, topic_size)
             blob = skia.TextBlob(i, font)
@@ -332,7 +332,7 @@ class BiliText:
                 text_family_name = typeface.getFamilyName()
                 if font_name != text_family_name:
                     font_name = text_family_name
-                    font = skia.Font(typeface, self.style.font.font_size.text)
+                font = skia.Font(typeface, self.style.font.font_size.text)
             else:
                 font = skia.Font(None, self.style.font.font_size.text)
             blob = skia.TextBlob(i, font)

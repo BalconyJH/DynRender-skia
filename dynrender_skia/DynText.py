@@ -10,9 +10,10 @@ from typing import Optional
 
 import emoji
 import numpy as np
-import skia
 from dynamicadaptor.Content import Text
 from loguru import logger
+
+import skia
 
 from .DynStyle import PolyStyle
 from .DynTools import get_pictures, merge_pictures, paste
@@ -35,20 +36,16 @@ class BiliText:
 
     async def run(self, dyn_text: Text, repost: bool = False) -> Optional[np.ndarray]:
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromFile(
-                self.style.font.font_family.as_posix(), self.style.font.font_style
-            )
-            if isinstance(self.style.font.font_family, Path)
+            skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+            if self.style.font.font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
             ),
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromFile(
-                self.style.font.emoji_font_family.as_posix(), self.style.font.font_style
-            )
-            if isinstance(self.style.font.font_family, Path)
+            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family, 0)
+            if self.style.font.font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
             ),

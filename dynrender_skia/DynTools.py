@@ -9,9 +9,10 @@ from typing import List, Optional, Union
 import emoji
 import httpx
 import numpy as np
-import skia
 from loguru import logger
 from numpy import ndarray
+
+import skia
 
 from .DynStyle import PolyStyle
 
@@ -66,9 +67,7 @@ class DrawText:
     def __init__(self, style: PolyStyle):
         self.style = style
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromFile(
-                self.style.font.font_family.as_posix(), self.style.font.font_style
-            )
+            skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
             if isinstance(self.style.font.font_family, Path)
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
@@ -76,9 +75,7 @@ class DrawText:
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromFile(
-                self.style.font.emoji_font_family.as_posix(), self.style.font.font_style
-            )
+            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family, 0)
             if isinstance(self.style.font.font_family, Path)
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style

@@ -14,9 +14,10 @@ from typing import Optional
 
 import emoji
 import numpy as np
-import skia
 from dynamicadaptor.Majors import Major
 from loguru import logger
+
+import skia
 
 from .DynStyle import PolyStyle
 from .DynTools import get_pictures, paste
@@ -28,7 +29,7 @@ class AbstractMajor(ABC):
         self.major = dyn_major
         self.text_font = skia.Font(
             skia.Typeface.MakeFromFile(
-                self.style.font.font_family.as_posix(), self.style.font.font_style
+                self.style.font.font_family.as_uri(), self.style.font.font_style
             )
             if isinstance(self.style.font.font_family, Path)
             else skia.Typeface.MakeFromName(
@@ -38,7 +39,7 @@ class AbstractMajor(ABC):
         )
         self.emoji_font = skia.Font(
             skia.Typeface.MakeFromFile(
-                self.style.font.emoji_font_family.as_posix(), self.style.font.font_style
+                self.style.font.emoji_font_family.as_uri(), self.style.font.font_style
             )
             if isinstance(self.style.font.font_family, Path)
             else skia.Typeface.MakeFromName(

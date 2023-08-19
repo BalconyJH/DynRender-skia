@@ -38,16 +38,16 @@ class BackgroundColor(BaseModel):
 
 
 class FontCfg(BaseModel):
-    font_family: Union[str, Path]
-    emoji_font_family: Union[str, Path]
+    font_family: str
+    emoji_font_family: str
     font_style: Any
     font_size: FontSize
 
-    @validator("font_family", "emoji_font_family", always=True)
-    def _change_str_to_path(cls, v: Union[str, Path]):
+    @validator("font_family", "emoji_font_family", always=True, pre=True)
+    def _change_path_to_str(cls, v: Union[str, Path]):
         v_ = Path(v)
         if v_.exists() and v_.is_file():
-            return v_
+            return v_.as_uri()
         else:
             return v
 

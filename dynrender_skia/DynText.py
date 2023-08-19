@@ -36,7 +36,7 @@ class BiliText:
 
     async def run(self, dyn_text: Text, repost: bool = False) -> Optional[np.ndarray]:
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+            skia.Typeface.MakeFromFile(self.style.font.font_family)
             if self.style.font.font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
@@ -44,10 +44,10 @@ class BiliText:
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family, 0)
-            if self.style.font.font_family.startswith("file://")
+            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family)
+            if self.style.font.emoji_font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
-                self.style.font.font_family, self.style.font.font_style
+                self.style.font.emoji_font_family, self.style.font.font_style
             ),
             self.style.font.font_size.text,
         )
@@ -180,7 +180,7 @@ class BiliText:
         font = None
         for i in topic:
             if typeface := (
-                skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                skia.Typeface.MakeFromFile(self.style.font.font_family)
                 if self.style.font.font_family.startswith("file://")
                 else skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
@@ -248,7 +248,7 @@ class BiliText:
                 font = self.text_font
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := (
-                    skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                    skia.Typeface.MakeFromFile(self.style.font.font_family)
                     if self.style.font.font_family.startswith("file://")
                     else skia.FontMgr().matchFamilyStyleCharacter(
                         self.style.font.font_family,
@@ -320,7 +320,7 @@ class BiliText:
         font = None
         for i in text_detail.text:
             if typeface := (
-                skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                skia.Typeface.MakeFromFile(self.style.font.font_family)
                 if self.style.font.font_family.startswith("file://")
                 else skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,

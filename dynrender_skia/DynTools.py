@@ -34,11 +34,9 @@ async def request_img(client, url, size):
             return img.resize(*size)
         return img
 
-    except:
-        logger.exception("e")
+    except Exception as e:
+        logger.exception(e)
         return None
-
-        #     pas
 
 
 async def merge_pictures(img_list: List[ndarray]) -> ndarray:
@@ -67,7 +65,7 @@ class DrawText:
     def __init__(self, style: PolyStyle):
         self.style = style
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+            skia.Typeface.MakeFromFile(self.style.font.font_family)
             if isinstance(self.style.font.font_family, Path)
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
@@ -75,10 +73,10 @@ class DrawText:
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family, 0)
-            if isinstance(self.style.font.font_family, Path)
+            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family)
+            if isinstance(self.style.font.emoji_font_family, Path)
             else skia.Typeface.MakeFromName(
-                self.style.font.font_family, self.style.font.font_style
+                self.style.font.emoji_font_family, self.style.font.font_style
             ),
             self.style.font.font_size.text,
         )
@@ -107,7 +105,7 @@ class DrawText:
                 font = self.text_font
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := (
-                    skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                    skia.Typeface.MakeFromFile(self.style.font.font_family)
                     if self.style.font.font_family.startswith("file://")
                     else skia.FontMgr().matchFamilyStyleCharacter(
                         self.style.font.font_family,

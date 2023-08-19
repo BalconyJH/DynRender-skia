@@ -28,7 +28,7 @@ class AbstractMajor(ABC):
         self.style = style
         self.major = dyn_major
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+            skia.Typeface.MakeFromFile(self.style.font.font_family)
             if self.style.font.font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
@@ -36,8 +36,8 @@ class AbstractMajor(ABC):
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family, 0)
-            if self.style.font.font_family.startswith("file://")
+            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family)
+            if self.style.font.emoji_font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.emoji_font_family, self.style.font.font_style
             ),
@@ -74,7 +74,7 @@ class AbstractMajor(ABC):
                 font = self.text_font
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := (
-                    skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+                    skia.Typeface.MakeFromFile(self.style.font.font_family)
                     if self.style.font.font_family.startswith("file://")
                     else skia.FontMgr().matchFamilyStyleCharacter(
                         self.style.font.font_family,

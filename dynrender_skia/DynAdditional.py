@@ -21,7 +21,7 @@ class AbstractAdditional(ABC):
         self.src_path = src_path
         self.canvas = None
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.font_family, 0)
+            skia.Typeface.MakeFromFile(self.style.font.font_family)
             if self.style.font.font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
@@ -29,8 +29,8 @@ class AbstractAdditional(ABC):
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family, 0)
-            if self.style.font.font_family.startswith("file://")
+            skia.Typeface.MakeFromFile(self.style.font.emoji_font_family)
+            if self.style.font.emoji_font_family.startswith("file://")
             else skia.Typeface.MakeFromName(
                 self.style.font.emoji_font_family, self.style.font.font_style
             ),

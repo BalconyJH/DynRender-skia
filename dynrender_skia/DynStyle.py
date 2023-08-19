@@ -47,7 +47,7 @@ class FontCfg(BaseModel):
     def _change_path_to_str(cls, v: Union[str, Path]):
         v_ = Path(v)
         if v_.exists() and v_.is_file():
-            return v_.as_uri()
+            return v_.as_posix()
         else:
             return v
 

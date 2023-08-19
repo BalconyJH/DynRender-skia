@@ -37,7 +37,7 @@ class BiliText:
     async def run(self, dyn_text: Text, repost: bool = False) -> Optional[np.ndarray]:
         self.text_font = skia.Font(
             skia.Typeface.MakeFromFile(self.style.font.font_family)
-            if self.style.font.font_family.startswith("file://")
+            if "/" in self.style.font.font_family
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
             ),
@@ -45,7 +45,7 @@ class BiliText:
         )
         self.emoji_font = skia.Font(
             skia.Typeface.MakeFromFile(self.style.font.emoji_font_family)
-            if self.style.font.emoji_font_family.startswith("file://")
+            if "/" in self.style.font.
             else skia.Typeface.MakeFromName(
                 self.style.font.emoji_font_family, self.style.font.font_style
             ),
@@ -181,7 +181,7 @@ class BiliText:
         for i in topic:
             if typeface := (
                 skia.Typeface.MakeFromFile(self.style.font.font_family)
-                if self.style.font.font_family.startswith("file://")
+                if "/" in self.style.font.font_family
                 else skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
                     self.style.font.font_style,
@@ -249,7 +249,7 @@ class BiliText:
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := (
                     skia.Typeface.MakeFromFile(self.style.font.font_family)
-                    if self.style.font.font_family.startswith("file://")
+                    if "/" in self.style.font.font_family
                     else skia.FontMgr().matchFamilyStyleCharacter(
                         self.style.font.font_family,
                         self.style.font.font_style,
@@ -321,7 +321,7 @@ class BiliText:
         for i in text_detail.text:
             if typeface := (
                 skia.Typeface.MakeFromFile(self.style.font.font_family)
-                if self.style.font.font_family.startswith("file://")
+                if "/" in self.style.font.font_family
                 else skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
                     self.style.font.font_style,

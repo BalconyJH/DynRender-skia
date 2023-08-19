@@ -29,7 +29,7 @@ class AbstractMajor(ABC):
         self.major = dyn_major
         self.text_font = skia.Font(
             skia.Typeface.MakeFromFile(self.style.font.font_family)
-            if self.style.font.font_family.startswith("file://")
+            if "/" in self.style.font.font_family
             else skia.Typeface.MakeFromName(
                 self.style.font.font_family, self.style.font.font_style
             ),
@@ -37,7 +37,7 @@ class AbstractMajor(ABC):
         )
         self.emoji_font = skia.Font(
             skia.Typeface.MakeFromFile(self.style.font.emoji_font_family)
-            if self.style.font.emoji_font_family.startswith("file://")
+            if "/" in self.style.font.emoji_font_family
             else skia.Typeface.MakeFromName(
                 self.style.font.emoji_font_family, self.style.font.font_style
             ),
@@ -75,7 +75,7 @@ class AbstractMajor(ABC):
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := (
                     skia.Typeface.MakeFromFile(self.style.font.font_family)
-                    if self.style.font.font_family.startswith("file://")
+                    if "/" in self.style.font.font_family
                     else skia.FontMgr().matchFamilyStyleCharacter(
                         self.style.font.font_family,
                         self.style.font.font_style,

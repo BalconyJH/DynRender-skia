@@ -67,7 +67,7 @@ class DrawText:
         self.style = style
         self.text_font = skia.Font(
             skia.Typeface.MakeFromFile(
-                self.style.font.font_family, self.style.font.font_style
+                self.style.font.font_family.as_posix(), self.style.font.font_style
             )
             if isinstance(self.style.font.font_family, Path)
             else skia.Typeface.MakeFromName(
@@ -77,7 +77,7 @@ class DrawText:
         )
         self.emoji_font = skia.Font(
             skia.Typeface.MakeFromFile(
-                self.style.font.emoji_font_family, self.style.font.font_style
+                self.style.font.emoji_font_family.as_posix(), self.style.font.font_style
             )
             if isinstance(self.style.font.font_family, Path)
             else skia.Typeface.MakeFromName(

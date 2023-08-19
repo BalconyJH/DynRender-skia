@@ -8,7 +8,8 @@
 """
 import json
 from os import getcwd, makedirs, path
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 from zipfile import ZipFile
 
 from loguru import logger
@@ -20,7 +21,8 @@ except ImportError as e:
     logger.warning(
         "Missing dependent files \n\n please install dependence: \n\n ---------------------------------------\n\n "
         "Ubuntu: apt install libgl1-mesa-glx \n\n ArchLinux: pacman -S libgl \n\n Centos: yum install mesa-libGL -y "
-        "\n\n---------------------------------------")
+        "\n\n---------------------------------------"
+    )
 from .DynStyle import PolyStyle
 
 
@@ -47,7 +49,7 @@ class MakeStaticFile:
                     "用户未传入data路径,将在程序运行目录创建static目录",
                     "创建static目录中...",
                     current_dir,
-                    program_running_path
+                    program_running_path,
                 )
                 logger.info("static目录创建成功")
         else:
@@ -61,7 +63,7 @@ class MakeStaticFile:
                     "未检测到static目录",
                     "使用用户传入路径创建static目录中...",
                     current_dir,
-                    self.data_path
+                    self.data_path,
                 )
                 logger.info("static目录创建成功")
         font_cache_path = path.join(static_path, "font_family.json")
@@ -92,7 +94,12 @@ class MakeStaticFile:
 
 
 class SetDynStyle:
-    def __init__(self, font_family: str, emoji_font_family: str, font_style: str) -> None:
+    def __init__(
+        self,
+        font_family: Union[str, Path],
+        emoji_font_family: Union[str, Path],
+        font_style: str,
+    ) -> None:
         self.font_family = font_family
         self.font_style = font_style
         self.emoji_font_family = emoji_font_family
@@ -108,14 +115,13 @@ class SetDynStyle:
                     "name_big_vip": (251, 107, 148, 255),
                     "name_small_vip": (60, 232, 78, 255),
                     "rich_text": (0, 161, 214, 255),
-                    "white": (255, 255, 255, 255)
+                    "white": (255, 255, 255, 255),
                 },
                 "background": {
                     "normal": (255, 255, 255, 255),
                     "repost": (241, 242, 243, 255),
-                    "border": (229, 233, 239, 255)
-                }
-
+                    "border": (229, 233, 239, 255),
+                },
             },
             "font": {
                 "font_family": self.font_family,
@@ -126,17 +132,22 @@ class SetDynStyle:
                     "text": 40,
                     "time": 35,
                     "title": 30,
-                    "sub_title": 20
-                }
-            }
+                    "sub_title": 20,
+                },
+            },
         }
 
         return PolyStyle(**cfg_obj)
 
     def get_font_style(self):
-        style_map = {"Normal": skia.FontStyle().Normal(), "Bold": skia.FontStyle().Bold(
-        ), "Italic": skia.FontStyle().Italic(), "BoldItalic": skia.FontStyle().BoldItalic()}
+        style_map = {
+            "Normal": skia.FontStyle().Normal(),
+            "Bold": skia.FontStyle().Bold(),
+            "Italic": skia.FontStyle().Italic(),
+            "BoldItalic": skia.FontStyle().BoldItalic(),
+        }
         return style_map.get(self.font_style, skia.FontStyle().Normal())
+
 
 # if __name__ == "__main__":
 #     a = SetDynStyle("Noto Sans CJK SC","Normal").set_style

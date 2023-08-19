@@ -5,6 +5,7 @@
 
 import asyncio
 from os import path
+from pathlib import Path
 from typing import Optional
 
 import emoji
@@ -14,7 +15,7 @@ from dynamicadaptor.Content import Text
 from loguru import logger
 
 from .DynStyle import PolyStyle
-from .DynTools import paste, merge_pictures, get_pictures
+from .DynTools import get_pictures, merge_pictures, paste
 
 
 class BiliText:
@@ -33,9 +34,31 @@ class BiliText:
         self.emoji_dict = {}
 
     async def run(self, dyn_text: Text, repost: bool = False) -> Optional[np.ndarray]:
-        self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family,self.style.font.font_style),self.style.font.font_size.text)
-        self.emoji_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.emoji_font_family,self.style.font.font_style),self.style.font.font_size.text)
-        self.bg_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        self.text_font = skia.Font(
+            skia.Typeface.MakeFromFile(
+                self.style.font.font_family, self.style.font.font_style
+            )
+            if isinstance(self.style.font.font_family, Path)
+            else skia.Typeface.MakeFromName(
+                self.style.font.font_family, self.style.font.font_style
+            ),
+            self.style.font.font_size.text,
+        )
+        self.emoji_font = skia.Font(
+            skia.Typeface.MakeFromFile(
+                self.style.font.emoji_font_family, self.style.font.font_style
+            )
+            if isinstance(self.style.font.font_family, Path)
+            else skia.Typeface.MakeFromName(
+                self.style.font.font_family, self.style.font.font_style
+            ),
+            self.style.font.font_size.text,
+        )
+        self.bg_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         self.canvas.clear(skia.Color(*self.bg_color))
         try:
             tasks = []
@@ -60,10 +83,14 @@ class BiliText:
                     emoji_list.append(i.emoji.icon_url)
             elif i.type != "RICH_TEXT_NODE_TYPE_TEXT":
                 rich_list.append(i)
-        result = await asyncio.gather(self.get_emoji(emoji_list, emoji_name_list), self.get_rich_pic(rich_list))
+        result = await asyncio.gather(
+            self.get_emoji(emoji_list, emoji_name_list), self.get_rich_pic(rich_list)
+        )
         await self.draw_text(result[1], dyn_text)
         if self.offset != 40:
-            self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+            self.image_list.append(
+                self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+            )
 
     async def get_emoji(self, emoji_url: list, emoji_name: list):
         emoji_pic = []
@@ -139,23 +166,27 @@ class BiliText:
         @return: None
         """
         topic_size = self.style.font.font_size.text
-        topic_img = skia.Image.open(path.join(self.src_path, "new_topic.png")).resize(topic_size, topic_size)
+        topic_img = skia.Image.open(path.join(self.src_path, "new_topic.png")).resize(
+            topic_size, topic_size
+        )
         icon_size = int(topic_size * 1.5)
         surface = skia.Surface(1080, icon_size + 10)
         canvas = surface.getCanvas()
         canvas.clear(skia.Color(*self.bg_color))
         await paste(canvas, topic_img, (45, 15))
 
-        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
+        paint = skia.Paint(
+            AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text)
+        )
         font_name = None
         offset = 45 + topic_size + 10
         font = None
         for i in topic:
             if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    self.style.font.font_family,
-                    self.style.font.font_style,
-                    ["zh", "en"],
-                    ord(i),
+                self.style.font.font_family,
+                self.style.font.font_style,
+                ["zh", "en"],
+                ord(i),
             ):
                 text_family_name = typeface.getFamilyName()
                 if font_name != text_family_name:
@@ -166,12 +197,18 @@ class BiliText:
             blob = skia.TextBlob(i, font)
             canvas.drawTextBlob(blob, offset, 50, paint)
             offset += font.measureText(i)
-        self.image_list.append(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+        self.image_list.append(
+            canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        )
 
     async def draw_text(self, rich_list: list, dyn_text: Text):
         self.canvas.clear(skia.Color(*self.bg_color))
         for i in dyn_text.rich_text_nodes:
-            if i.type in {"RICH_TEXT_NODE_TYPE_AT", "RICH_TEXT_NODE_TYPE_TEXT", "RICH_TEXT_NODE_TYPE_TOPIC"}:
+            if i.type in {
+                "RICH_TEXT_NODE_TYPE_AT",
+                "RICH_TEXT_NODE_TYPE_TEXT",
+                "RICH_TEXT_NODE_TYPE_TOPIC",
+            }:
                 if i.type in {"RICH_TEXT_NODE_TYPE_AT", "RICH_TEXT_NODE_TYPE_TOPIC"}:
                     color = skia.Color(*self.style.color.font_color.rich_text)
                 else:
@@ -184,7 +221,7 @@ class BiliText:
 
     async def draw_plain_text(self, dyn_detail, color):
         font = None
-        dyn_detail = dyn_detail.translate(str.maketrans({'\r': ''}))
+        dyn_detail = dyn_detail.translate(str.maketrans({"\r": ""}))
         paint = skia.Paint(AntiAlias=True, Color=color)
         emoji_info = await self.get_emoji_text(dyn_detail)
         total = len(dyn_detail) - 1
@@ -194,7 +231,9 @@ class BiliText:
             if j == "\n":
                 self.canvas.saveLayer()
                 self.canvas.clear(skia.Color(*self.bg_color))
-                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.image_list.append(
+                    self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+                )
                 self.canvas.restore()
                 offset += 1
                 self.offset = 40
@@ -203,9 +242,8 @@ class BiliText:
                 j = emoji_info[offset][1]
                 offset = emoji_info[offset][0]
                 font = self.emoji_font
-                print(j)
             else:
-                offset +=1
+                offset += 1
                 font = self.text_font
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
@@ -225,19 +263,23 @@ class BiliText:
                 self.offset = 40
                 self.canvas.saveLayer()
                 self.canvas.clear(skia.Color(*self.bg_color))
-                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.image_list.append(
+                    self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+                )
                 self.canvas.restore()
 
-    async def draw_emoji(self,emoji_detail):
+    async def draw_emoji(self, emoji_detail):
         img = self.emoji_dict[emoji_detail]
         if img is not None:
             img_size = img.dimensions().width()
-            await paste(self.canvas,img, (int(self.offset),0))
-            self.offset += img_size+5
+            await paste(self.canvas, img, (int(self.offset), 0))
+            self.offset += img_size + 5
             if self.offset >= self.x_bound:
                 self.canvas.saveLayer()
                 self.canvas.clear(skia.Color(*self.bg_color))
-                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.image_list.append(
+                    self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+                )
                 self.canvas.restore()
                 self.offset = 40
 
@@ -252,23 +294,31 @@ class BiliText:
             icon = rich_list["cv"]
         else:
             icon = rich_list["link"]
-        await paste(self.canvas,icon,(int(self.offset),int(60-icon.dimensions().height())/2))
-        self.offset += icon.dimensions().width()+5
+        await paste(
+            self.canvas,
+            icon,
+            (int(self.offset), int(60 - icon.dimensions().height()) / 2),
+        )
+        self.offset += icon.dimensions().width() + 5
         if self.offset >= self.x_bound:
             self.canvas.saveLayer()
             self.canvas.clear(skia.Color(*self.bg_color))
-            self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+            self.image_list.append(
+                self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+            )
             self.canvas.restore()
             self.offset = 40
-        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
+        paint = skia.Paint(
+            AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text)
+        )
         font_name = None
         font = None
         for i in text_detail.text:
             if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    self.style.font.font_family,
-                    self.style.font.font_style,
-                    ["zh", "en"],
-                    ord(i),
+                self.style.font.font_family,
+                self.style.font.font_style,
+                ["zh", "en"],
+                ord(i),
             ):
                 text_family_name = typeface.getFamilyName()
                 if font_name != text_family_name:
@@ -282,6 +332,8 @@ class BiliText:
             if self.offset >= self.x_bound:
                 self.canvas.saveLayer()
                 self.canvas.clear(skia.Color(*self.bg_color))
-                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+                self.image_list.append(
+                    self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+                )
                 self.canvas.restore()
                 self.offset = 40

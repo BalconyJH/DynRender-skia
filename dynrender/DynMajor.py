@@ -633,6 +633,8 @@ class DynMajorLive(AbstractMajor):
         except Exception as e:
             logger.exception(e)
             return None
+
+
 class DynMajorNone(AbstractMajor):
     
     async def run(self, repost):

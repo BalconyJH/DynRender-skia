@@ -203,6 +203,7 @@ class BiliText:
                 j = emoji_info[offset][1]
                 offset = emoji_info[offset][0]
                 font = self.emoji_font
+                print(j)
             else:
                 offset +=1
                 font = self.text_font

@@ -167,13 +167,14 @@ class RepostHeader:
         self.static_path = static_path
 
     async def run(self, message: Head) -> Optional[np.ndarray]:
+        
         surface = skia.Surface(1080, 100)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*self.style.color.background.repost))
         try:
-            if not message.name :
+            if message.name is None or message.name == "":
                 return None
-            if message.face:
+            if message.face is not None or message.face=="":
                 pos = 140
                 await self.draw_face(message.face, message.mid)
             else:
@@ -189,7 +190,7 @@ class RepostHeader:
             img = await self.get_face(mid, url)
             if img is not None:
                 face = await self.circle_face(img, 80)
-            await paste(self.canvas, face, (40, 10))
+                await paste(self.canvas, face, (40, 10))
 
     async def draw_name(self, name, pos: int):
         await DrawText(self.style).draw_text(self.canvas, name, self.style.font.font_size.name, (pos, 70, 1010, 70, 0),

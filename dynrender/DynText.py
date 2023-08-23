@@ -14,7 +14,7 @@ from dynamicadaptor.Content import Text
 from loguru import logger
 
 from .DynStyle import PolyStyle
-from .DynTools import paste, merge_pictures, get_pictures
+from .DynTools import paste, merge_pictures, get_pictures,DrawText
 
 
 class BiliText:
@@ -145,27 +145,7 @@ class BiliText:
         canvas = surface.getCanvas()
         canvas.clear(skia.Color(*self.bg_color))
         await paste(canvas, topic_img, (45, 15))
-
-        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
-        font_name = None
-        offset = 45 + topic_size + 10
-        font = None
-        for i in topic:
-            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    self.style.font.font_family,
-                    self.style.font.font_style,
-                    ["zh", "en"],
-                    ord(i),
-            ):
-                text_family_name = typeface.getFamilyName()
-                if font_name != text_family_name:
-                    font_name = text_family_name
-                    font = skia.Font(typeface, topic_size)
-            else:
-                font = skia.Font(None, topic_size)
-            blob = skia.TextBlob(i, font)
-            canvas.drawTextBlob(blob, offset, 50, paint)
-            offset += font.measureText(i)
+        await DrawText(self.style).draw_text(canvas,topic,topic_size,(45 + topic_size + 10,50,1080,50,0),self.style.color.font_color.rich_text)
         self.image_list.append(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
 
     async def draw_text(self, rich_list: list, dyn_text: Text):
@@ -260,21 +240,17 @@ class BiliText:
             self.canvas.restore()
             self.offset = 40
         paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
-        font_name = None
-        font = None
+        font =skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
+                                   self.style.font.font_size.text)
         for i in text_detail.text:
-            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    self.style.font.font_family,
-                    self.style.font.font_style,
-                    ["zh", "en"],
-                    ord(i),
-            ):
-                text_family_name = typeface.getFamilyName()
-                if font_name != text_family_name:
-                    font_name = text_family_name
+            if font.textToGlyphs(i)[0] == 0:
+                if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                        self.style.font.font_family,
+                        self.style.font.font_style,
+                        ["zh", "en"],
+                        ord(i),
+                ):    
                     font = skia.Font(typeface, self.style.font.font_size.text)
-            else:
-                font = skia.Font(None, self.style.font.font_size.text)
             blob = skia.TextBlob(i, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)
             self.offset += font.measureText(i)

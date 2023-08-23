@@ -128,7 +128,7 @@ class BiliHeader:
         elif self.message.pub_time:
             pub_time = self.message.pub_time
         else:
-            pub_time = strftime("%Y-%m-%d %H:%M:%S", localtime(time()))
+            pub_time = " "
 
         await DrawText(self.style).draw_text(self.canvas, pub_time, self.style.font.font_size.time,
                                              (200, 350, 1010, 350, 0,), self.style.color.font_color.sub_title)

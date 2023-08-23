@@ -240,8 +240,7 @@ class BiliText:
             self.canvas.restore()
             self.offset = 40
         paint = skia.Paint(AntiAlias=True, Color=skia.Color(*self.style.color.font_color.rich_text))
-        font =skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
-                                   self.style.font.font_size.text)
+        font =self.text_font
         for i in text_detail.text:
             if font.textToGlyphs(i)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
@@ -251,6 +250,8 @@ class BiliText:
                         ord(i),
                 ):    
                     font = skia.Font(typeface, self.style.font.font_size.text)
+                else:
+                    font = self.text_font
             blob = skia.TextBlob(i, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)
             self.offset += font.measureText(i)

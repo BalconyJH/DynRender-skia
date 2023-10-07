@@ -181,7 +181,6 @@ class DynAddGoods(AbstractAdditional):
                                                  self.style.font.font_size.sub_title, (
                                                      45, 30, 1010, 80, 0),
                                                  self.style.color.font_color.sub_title)
-            await self.make_badge("去看看", self.style.font.font_size.time, (860, 125), (155, 75), (25, 50))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
             logger.exception(e)
@@ -201,6 +200,8 @@ class DynAddGoods(AbstractAdditional):
                 await paste(self.canvas, await self.make_round_cornor(j, 10), (x, 75))
         else:
             await paste(self.canvas, await self.make_round_cornor(covers[0], 10), (60, 75))
+            await self.make_badge("去看看", self.style.font.font_size.time, (860, 125), (155, 75), (25, 50))
+
 
     async def make_title_desc(self):
         if len(self.additional.goods.items) > 1:

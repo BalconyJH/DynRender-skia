@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 @File    :   DynMajor.py
-@Time    :   2023/07/16 20:21:46
+@Time    :   2023/11/13 19:15:46
 @Author  :   Polyisoprene
 @Version :   1.0
 @Desc    :   None
@@ -14,15 +14,17 @@ import emoji
 from typing import Optional
 from loguru import logger
 from .DynStyle import PolyStyle
-from .DynTools import paste, get_pictures
+from .DynTools import paste, get_pictures, merge_pictures
 from dynamicadaptor.Majors import Major
+from dynamicadaptor.Content import Text
 from math import ceil
-
+from .DynText import BiliText
+from os import path
 from abc import ABC, abstractmethod
 
 
 class AbstractMajor(ABC):
-    def __init__(self, src_path: str, style: PolyStyle, dyn_major: Major) -> None:
+    def __init__(self, src_path: str, style: PolyStyle, dyn_major: Major=None) -> None:
         self.style = style
         self.major = dyn_major
         self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
@@ -37,8 +39,11 @@ class AbstractMajor(ABC):
     async def run(self, repost) -> Optional[np.ndarray]:
         pass
 
-    async def draw_text(self, canvas, text: str, font_size, pos: tuple, font_color: tuple):
+    async def draw_text(self, canvas, text: str, font_size, pos: tuple, font_color: tuple,font_style =None):
         paint = skia.Paint(AntiAlias=True, Color=skia.Color(*font_color))
+        if font_style is not None:
+            self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family, font_style),
+                                   self.style.font.font_size.text)
         self.text_font.setSize(font_size)
         self.emoji_font.setSize(font_size)
         text = text.replace("\t", "")
@@ -149,7 +154,7 @@ class BiliMajor:
         try:
             major_type = dyn_major.type
             if major_type == "MAJOR_TYPE_DRAW":
-                return await DynMajorDraw(self.style, dyn_major).run(repost)
+                return await DynMajorDraw(self.style,items=dyn_major.draw.items).run(repost)
             elif major_type == "MAJOR_TYPE_ARCHIVE":
                 return await DynMajorArchive(self.src_path, self.style, dyn_major).run(repost)
             elif major_type == "MAJOR_TYPE_LIVE_RCMD":
@@ -184,9 +189,9 @@ class BiliMajor:
 
 
 class DynMajorDraw:
-    def __init__(self, style, major) -> None:
+    def __init__(self,style: PolyStyle,items=None) -> None:
         self.style = style
-        self.major = major
+        self.items = items
 
     async def run(self, repost: bool) -> Optional[np.ndarray]:
         """
@@ -195,20 +200,20 @@ class DynMajorDraw:
         @return:
         """
         try:
-            item_count = len(self.major.draw.items)
+            item_count = len(self.items)
             background_color = self.style.color.background.repost if repost else self.style.color.background.normal
             if item_count == 1:
-                return await self.single_img(background_color, self.major.draw.items)
+                return await self.single_img(background_color, self.items)
             elif item_count in {2, 4}:
-                return await self.dual_img(background_color, self.major.draw.items)
+                return await self.dual_img(background_color, self.items)
             else:
-                return await self.triplex_img(background_color, self.major.draw.items)
+                return await self.triplex_img(background_color, self.items)
         except Exception:
             logger.exception("Error")
             return None
 
     async def single_img(self, background_color: str, items) -> np.ndarray:
-        src = items[0].src
+        src = items[0].src or items[0].url
         img_height = items[0].height
         img_width = items[0].width
         if img_height / img_width > 4:
@@ -227,7 +232,7 @@ class DynMajorDraw:
     async def dual_img(self, background_color: str, items):
         url_list = []
         for item in items:
-            src = item.src
+            src = item.src or item.url
             img_height = item.height
             img_width = item.width
             if img_height / img_width > 3:
@@ -254,7 +259,7 @@ class DynMajorDraw:
     async def triplex_img(self, background_color: str, items):
         url_list = []
         for item in items:
-            src = item.src
+            src = item.src or item.url
             img_height = item.height
             img_width = item.width
             if img_height / img_width > 3:
@@ -338,45 +343,38 @@ class DynMajorLiveRcmd(AbstractMajor):
 class DynMajorOpus(AbstractMajor):
 
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
-        surface = skia.Surface(1080, 640)
-        self.canvas = surface.getCanvas()
-        self.canvas.clear(skia.Color(*background_color))
+        pics = []
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 600), 20, background_color)
-
-            rec = skia.Rect.MakeXYWH(35, 20, 1010, 600)
-            self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await self.draw_title_and_desc()
-            await self.make_cover()
-            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+            if self.major.opus.title:
+               title = await self.make_title(self.major.opus.title,repost)
+               pics.append(title)
         except Exception as e:
             logger.exception(e)
+        try:
+            if self.major.opus.summary:
+                # self.style.font.font_style=skia.FontStyle().Normal()
+                dyn_text = Text(text=self.major.opus.summary.text,topic=None,rich_text_nodes=self.major.opus.summary.rich_text_nodes)
+                text_img = await BiliText(path.dirname(self.src_path),self.style).run(dyn_text,repost)
+                pics.append(text_img)
+        except Exception as e:
+            logger.exception(e)
+        try:
+            if self.major.opus.pics:
+                cover =  await DynMajorDraw(self.style,items=self.major.opus.pics).run(repost)
+                pics.append(cover)
+        except Exception as e:
+            logger.exception(e)
+        if not pics:
             return None
+        return await merge_pictures(pics)
 
-    async def make_cover(self):
-        if len(self.major.opus.pics) > 1:
-            url_list = [f"{i.url}@360w_360h_1c" for i in self.major.opus.pics]
-            imgs = await get_pictures(url_list, (330, 330))
-            for i, j in enumerate(imgs):
-                await paste(self.canvas, j, (35 + i * 340, 20))
-        else:
-            img = await get_pictures(f"{self.major.opus.pics[0].url}@647w_150h_1c.webp", (1010, 300))
-            await paste(self.canvas, img, (35, 20))
-
-    async def draw_title_and_desc(self):
-        title = self.major.opus.title
-        if len(self.major.opus.pics) > 1:
-            await self.draw_text(self.canvas, title, self.style.font.font_size.text, (50, 410, 960, 330, 0),
-                                 self.style.color.font_color.text)
-        else:
-            await self.draw_text(self.canvas, title, self.style.font.font_size.text, (50, 390, 960, 330, 0),
-                                 self.style.color.font_color.text)
-        desc = self.major.opus.summary.text
-        await self.draw_text(self.canvas, desc, self.style.font.font_size.title,
-                             (65, 460, 980, 620, int(self.style.font.font_size.title * 1.8)),
-                             self.style.color.font_color.sub_title)
-
+    async def make_title(self,title,repost):
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        surface = skia.Surface(1080, self.style.font.font_size.name+20)
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color(*background_color))
+        await self.draw_text(canvas,title,self.style.font.font_size.name,(45,int((self.style.font.font_size.name+40)/2),1035,40,0),self.style.color.font_color.text,font_style=skia.FontStyle().Bold())
+        return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
 
 class DynMajorArticle(AbstractMajor):
 
@@ -633,6 +631,8 @@ class DynMajorLive(AbstractMajor):
         except Exception as e:
             logger.exception(e)
             return None
+
+
 class DynMajorNone(AbstractMajor):
     
     async def run(self, repost):

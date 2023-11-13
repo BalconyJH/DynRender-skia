@@ -3,9 +3,8 @@
 
 [metadata]
 groups = ["default"]
-cross_platform = true
-static_urls = false
-lock_version = "4.3"
+strategy = ["cross_platform"]
+lock_version = "4.4"
 content_hash = "sha256:c101369618741ed5b0ab7409ecdaa1e85f0ad54a33e20c3b29035a921669b511"
 
 [[package]]
@@ -45,7 +44,7 @@ files = [
 
 [[package]]
 name = "dynamicadaptor"
-version = "0.4.9"
+version = "0.5.0"
 requires_python = ">=3.8.0,<4.0.0"
 summary = ""
 dependencies = [
@@ -53,8 +52,8 @@ dependencies = [
     "pydantic<2.0.0,>=1.10.4",
 ]
 files = [
-    {file = "dynamicadaptor-0.4.9-py3-none-any.whl", hash = "sha256:c9be006dc69eb7cc0270a8399507030c3d645989e53cfce0cbbcba6467d88909"},
-    {file = "dynamicadaptor-0.4.9.tar.gz", hash = "sha256:d2164abb235cbc2691e03d0b16d0acb36cc7fc309ad0d99d8b679ed820a4b4d9"},
+    {file = "dynamicadaptor-0.5.0-py3-none-any.whl", hash = "sha256:af19fd1dd2a4c2fbc8fa4ed77a2843d92da94bd591d8d4fa88baa2f6ca724978"},
+    {file = "dynamicadaptor-0.5.0.tar.gz", hash = "sha256:dc49be88bdca5029ed547189bac51bb9343410a6543fb809e1f77073f2cf3917"},
 ]
 
 [[package]]
@@ -105,18 +104,19 @@ files = [
 
 [[package]]
 name = "httpx"
-version = "0.24.1"
-requires_python = ">=3.7"
+version = "0.25.1"
+requires_python = ">=3.8"
 summary = "The next generation HTTP client."
 dependencies = [
+    "anyio",
     "certifi",
-    "httpcore<0.18.0,>=0.15.0",
+    "httpcore",
     "idna",
     "sniffio",
 ]
 files = [
-    {file = "httpx-0.24.1-py3-none-any.whl", hash = "sha256:06781eb9ac53cde990577af654bd990a4949de37a28bdb4a230d434f3a30b9bd"},
-    {file = "httpx-0.24.1.tar.gz", hash = "sha256:5853a43053df830c20f8110c5e69fe44d035d850b2dfe795e196f00fdb774bdd"},
+    {file = "httpx-0.25.1-py3-none-any.whl", hash = "sha256:fec7d6cc5c27c578a391f7e87b9aa7d3d8fbcd034f6399f9f79b45bcc12a866a"},
+    {file = "httpx-0.25.1.tar.gz", hash = "sha256:ffd96d5cf901e63863d9f1b4b6807861dbea4d301613415d9e6e57ead15fc5d0"},
 ]
 
 [[package]]

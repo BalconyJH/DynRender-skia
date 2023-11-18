@@ -179,8 +179,9 @@ class BiliMajor:
                 return await DynMajorLive(self.src_path, self.style, dyn_major).run(repost)
             elif major_type == "MAJOR_TYPE_NONE":
                 return await DynMajorNone(self.src_path, self.style, dyn_major).run(repost)
+            elif major_type == "MAJOR_TYPE_BLOCKED":
+                return await DynMajorBlocked(self.src_path, self.style, dyn_major).run(repost)
             else:
-                
                 logger.warning(f"{major_type} is not supported")
                 return None
         except Exception as e:
@@ -651,3 +652,26 @@ class DynMajorNone(AbstractMajor):
         error = skia.Image.open(path.join(self.src_path, "error.png")).resize(40, 40)
         await self.draw_text(self.canvas,self.major.none.tips,self.style.font.font_size.text,(90,60,1080,40,0),self.style.color.font_color.sub_title)
         await paste(self.canvas, error, (40, 30))
+
+class DynMajorBlocked(AbstractMajor):
+    async def run(self, repost):
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        surface = skia.Surface(1080, 1200)
+        self.canvas = surface.getCanvas()
+        self.canvas.clear(skia.Color(*background_color))
+        try:
+            result = await get_pictures([f"{self.major.blocked.bg_img.img_dark}@1c.webp",self.major.blocked.icon.img_day])            
+            await self.draw_shadow(self.canvas, (40, 100, 1000, 1000), 20, background_color)
+            rec = skia.Rect.MakeXYWH(40, 100, 1000, 1000)
+            self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
+            await paste(self.canvas,result[1],(456,380))
+            await paste(self.canvas, result[0].resize(1000,1000), (40, 100))
+            text = self.major.blocked.hint_message.split("\n")
+            await self.draw_text(self.canvas, text[0], self.style.font.font_size.name,
+                                 (380, 630, 980, 600, 10), self.style.color.font_color.sub_title)
+            await self.draw_text(self.canvas, text[1], self.style.font.font_size.name,
+                                 (160, 700, 980, 600, 10), self.style.color.font_color.sub_title)
+            return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        except Exception as e:
+            logger.exception(e)
+            return None

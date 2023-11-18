@@ -44,7 +44,7 @@ files = [
 
 [[package]]
 name = "dynamicadaptor"
-version = "0.5.0"
+version = "0.5.2"
 requires_python = ">=3.8.0,<4.0.0"
 summary = ""
 dependencies = [
@@ -52,8 +52,8 @@ dependencies = [
     "pydantic<2.0.0,>=1.10.4",
 ]
 files = [
-    {file = "dynamicadaptor-0.5.0-py3-none-any.whl", hash = "sha256:af19fd1dd2a4c2fbc8fa4ed77a2843d92da94bd591d8d4fa88baa2f6ca724978"},
-    {file = "dynamicadaptor-0.5.0.tar.gz", hash = "sha256:dc49be88bdca5029ed547189bac51bb9343410a6543fb809e1f77073f2cf3917"},
+    {file = "dynamicadaptor-0.5.2-py3-none-any.whl", hash = "sha256:743a24e359ed7cdead0bd42bf91205a8b5bffc9cf84991f9c534a7f1dcc550bc"},
+    {file = "dynamicadaptor-0.5.2.tar.gz", hash = "sha256:50220601ba2a4270675a172ead3abe6f670b0c5c813c322e84b99b590dbd01e5"},
 ]
 
 [[package]]

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 @File    :   DynMajor.py
 @Time    :   2023/11/13 19:15:46
 @Author  :   Polyisoprene
 @Version :   1.0
 @Desc    :   None
-'''
+"""
 from os import path
 
 import skia
@@ -24,14 +24,23 @@ from abc import ABC, abstractmethod
 
 
 class AbstractMajor(ABC):
-    def __init__(self, src_path: str, style: PolyStyle, dyn_major: Major=None) -> None:
+    def __init__(
+        self, src_path: str, style: PolyStyle, dyn_major: Major = None
+    ) -> None:
         self.style = style
         self.major = dyn_major
-        self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
-                                   self.style.font.font_size.text)
+        self.text_font = skia.Font(
+            skia.Typeface.MakeFromName(
+                self.style.font.font_family, self.style.font.font_style
+            ),
+            self.style.font.font_size.text,
+        )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromName(self.style.font.emoji_font_family, self.style.font.font_style),
-            self.style.font.font_size.text)
+            skia.Typeface.MakeFromName(
+                self.style.font.emoji_font_family, self.style.font.font_style
+            ),
+            self.style.font.font_size.text,
+        )
         self.src_path = src_path
         self.canvas = None
 
@@ -39,11 +48,21 @@ class AbstractMajor(ABC):
     async def run(self, repost) -> Optional[np.ndarray]:
         pass
 
-    async def draw_text(self, canvas, text: str, font_size, pos: tuple, font_color: tuple,font_style =None):
+    async def draw_text(
+        self,
+        canvas,
+        text: str,
+        font_size,
+        pos: tuple,
+        font_color: tuple,
+        font_style=None,
+    ):
         paint = skia.Paint(AntiAlias=True, Color=skia.Color(*font_color))
         if font_style is not None:
-            self.text_font = skia.Font(skia.Typeface.MakeFromName(self.style.font.font_family, font_style),
-                                   self.style.font.font_size.text)
+            self.text_font = skia.Font(
+                skia.Typeface.MakeFromName(self.style.font.font_family, font_style),
+                self.style.font.font_size.text,
+            )
         self.text_font.setSize(font_size)
         self.emoji_font.setSize(font_size)
         text = text.replace("\t", "")
@@ -64,10 +83,10 @@ class AbstractMajor(ABC):
                 font = self.text_font
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                        self.style.font.font_family,
-                        self.style.font.font_style,
-                        ["zh", "en"],
-                        ord(j[0]),
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(j[0]),
                 ):
                     font = skia.Font(typeface, font_size)
                 else:
@@ -97,7 +116,9 @@ class AbstractMajor(ABC):
         paint = skia.Paint(
             Color=skia.Color(*bg_color),
             AntiAlias=True,
-            ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120))
+            ImageFilter=skia.ImageFilters.DropShadow(
+                0, 0, 10, 10, skia.Color(120, 120, 120)
+            ),
         )
         if corner != 0:
             canvas.drawRoundRect(rec, corner, corner, paint)
@@ -110,12 +131,17 @@ class AbstractMajor(ABC):
         paint = skia.Paint(
             Style=skia.Paint.kFill_Style,
             Color=skia.Color(255, 255, 255, 255),
-            AntiAlias=True)
+            AntiAlias=True,
+        )
         rect = skia.Rect.MakeXYWH(0, 0, img.width(), img.height())
         mask.drawRoundRect(rect, corner, corner, paint)
-        image_array = np.bitwise_and(img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-                                     mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
-        return skia.Image.fromarray(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
+        image_array = np.bitwise_and(
+            img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+        )
+        return skia.Image.fromarray(
+            image_array, colorType=skia.ColorType.kRGBA_8888_ColorType
+        )
 
     async def make_tag(self, tag: str, font_size: int):
         self.text_font.setSize(font_size)
@@ -126,8 +152,10 @@ class AbstractMajor(ABC):
         blob = skia.TextBlob(tag, self.text_font)
         paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
         canvas.drawTextBlob(blob, 10, int(self.text_font.getSize() + 5), paint)
-        tag_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-                                       colorType=skia.ColorType.kRGBA_8888_ColorType)
+        tag_img = skia.Image.fromarray(
+            canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            colorType=skia.ColorType.kRGBA_8888_ColorType,
+        )
         tag_img = await self.make_round_cornor(tag_img, 10)
         await paste(self.canvas, tag_img, (1010 - tag_img.width(), 50))
 
@@ -140,9 +168,13 @@ class AbstractMajor(ABC):
         blob = skia.TextBlob(sub_tag, self.text_font)
         paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
         canvas.drawTextBlob(blob, 10, int(self.text_font.getSize() + 5), paint)
-        sub_title_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-                                             colorType=skia.ColorType.kRGBA_8888_ColorType)
-        await paste(self.canvas, await self.make_round_cornor(sub_title_img, 10), (80, 525))
+        sub_title_img = skia.Image.fromarray(
+            canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            colorType=skia.ColorType.kRGBA_8888_ColorType,
+        )
+        await paste(
+            self.canvas, await self.make_round_cornor(sub_title_img, 10), (80, 525)
+        )
 
 
 class BiliMajor:
@@ -154,33 +186,61 @@ class BiliMajor:
         try:
             major_type = dyn_major.type
             if major_type == "MAJOR_TYPE_DRAW":
-                return await DynMajorDraw(self.style,items=dyn_major.draw.items).run(repost)
+                return await DynMajorDraw(self.style, items=dyn_major.draw.items).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_ARCHIVE":
-                return await DynMajorArchive(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorArchive(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_LIVE_RCMD":
-                return await DynMajorLiveRcmd(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorLiveRcmd(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_OPUS":
-                return await DynMajorOpus(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorOpus(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_ARTICLE":
-                return await DynMajorArticle(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorArticle(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_COMMON":
-                return await DynMajorCommon(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorCommon(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_MUSIC":
-                return await DynMajorMusic(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorMusic(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_PGC":
-                return await DynMajorPgc(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorPgc(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_MEDIALIST":
-                return await DynMajorMediaList(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorMediaList(
+                    self.src_path, self.style, dyn_major
+                ).run(repost)
             elif major_type == "MAJOR_TYPE_COURSES":
-                return await DynMajorCourses(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorCourses(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_UGC_SEASON":
-                return await DynMajorUgc(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorUgc(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_LIVE":
-                return await DynMajorLive(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorLive(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_NONE":
-                return await DynMajorNone(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorNone(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             elif major_type == "MAJOR_TYPE_BLOCKED":
-                return await DynMajorBlocked(self.src_path, self.style, dyn_major).run(repost)
+                return await DynMajorBlocked(self.src_path, self.style, dyn_major).run(
+                    repost
+                )
             else:
                 logger.warning(f"{major_type} is not supported")
                 return None
@@ -190,7 +250,7 @@ class BiliMajor:
 
 
 class DynMajorDraw:
-    def __init__(self,style: PolyStyle,items=None) -> None:
+    def __init__(self, style: PolyStyle, items=None) -> None:
         self.style = style
         self.items = items
 
@@ -202,7 +262,11 @@ class DynMajorDraw:
         """
         try:
             item_count = len(self.items)
-            background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+            background_color = (
+                self.style.color.background.repost
+                if repost
+                else self.style.color.background.normal
+            )
             if item_count == 1:
                 return await self.single_img(background_color, self.items)
             elif item_count in {2, 4}:
@@ -287,26 +351,45 @@ class DynMajorDraw:
 
 
 class DynMajorArchive(AbstractMajor):
-
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
-            cover = await get_pictures(f"{self.major.archive.cover}@505w_285h_1c.webp", (1010, 570))
+            cover = await get_pictures(
+                f"{self.major.archive.cover}@505w_285h_1c.webp", (1010, 570)
+            )
 
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await self.draw_shadow(
+                self.canvas, (35, 25, 1010, 655), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await self.draw_text(self.canvas, self.major.archive.title, self.style.font.font_size.text,
-                                 (60, 650, 980, 600, 10), self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                self.major.archive.title,
+                self.style.font.font_size.text,
+                (60, 650, 980, 600, 10),
+                self.style.color.font_color.text,
+            )
             await paste(self.canvas, cover, (35, 25))
             await paste(self.canvas, tv, (905, 455))
-            if self.major.archive.badge is not None and self.major.archive.badge.text != '':
-                await self.make_tag(self.major.archive.badge.text, self.style.font.font_size.text)
-            await self.make_sub_tag(self.major.archive.duration_text, self.style.font.font_size.title)
+            if (
+                self.major.archive.badge is not None
+                and self.major.archive.badge.text != ""
+            ):
+                await self.make_tag(
+                    self.major.archive.badge.text, self.style.font.font_size.text
+                )
+            await self.make_sub_tag(
+                self.major.archive.duration_text, self.style.font.font_size.title
+            )
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception:
             logger.exception("Error")
@@ -314,27 +397,40 @@ class DynMajorArchive(AbstractMajor):
 
 
 class DynMajorLiveRcmd(AbstractMajor):
-
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            cover = await get_pictures(f"{self.major.live_rcmd.content.live_play_info.cover}@505w_285h_1c.webp",
-                                       (1010, 570))
+            cover = await get_pictures(
+                f"{self.major.live_rcmd.content.live_play_info.cover}@505w_285h_1c.webp",
+                (1010, 570),
+            )
 
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await self.draw_shadow(
+                self.canvas, (35, 25, 1010, 655), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
 
-            await self.draw_text(self.canvas, self.major.live_rcmd.content.live_play_info.title,
-                                 self.style.font.font_size.text, (60, 650, 980, 600, 10),
-                                 self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                self.major.live_rcmd.content.live_play_info.title,
+                self.style.font.font_size.text,
+                (60, 650, 980, 600, 10),
+                self.style.color.font_color.text,
+            )
             await paste(self.canvas, cover, (35, 25))
             await self.make_tag("直播中", self.style.font.font_size.text)
-            await self.make_sub_tag(self.major.live_rcmd.content.live_play_info.watched_show.text_large,
-                                    self.style.font.font_size.title)
+            await self.make_sub_tag(
+                self.major.live_rcmd.content.live_play_info.watched_show.text_large,
+                self.style.font.font_size.title,
+            )
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception:
             logger.exception("Error")
@@ -342,26 +438,33 @@ class DynMajorLiveRcmd(AbstractMajor):
 
 
 class DynMajorOpus(AbstractMajor):
-
     async def run(self, repost) -> Optional[np.ndarray]:
         pics = []
         try:
             if self.major.opus.title:
-               title = await self.make_title(self.major.opus.title,repost)
-               pics.append(title)
+                title = await self.make_title(self.major.opus.title, repost)
+                pics.append(title)
         except Exception as e:
             logger.exception(e)
         try:
             if self.major.opus.summary:
                 # self.style.font.font_style=skia.FontStyle().Normal()
-                dyn_text = Text(text=self.major.opus.summary.text,topic=None,rich_text_nodes=self.major.opus.summary.rich_text_nodes)
-                text_img = await BiliText(path.dirname(self.src_path),self.style).run(dyn_text,repost)
+                dyn_text = Text(
+                    text=self.major.opus.summary.text,
+                    topic=None,
+                    rich_text_nodes=self.major.opus.summary.rich_text_nodes,
+                )
+                text_img = await BiliText(path.dirname(self.src_path), self.style).run(
+                    dyn_text, repost
+                )
                 pics.append(text_img)
         except Exception as e:
             logger.exception(e)
         try:
             if self.major.opus.pics:
-                cover =  await DynMajorDraw(self.style,items=self.major.opus.pics).run(repost)
+                cover = await DynMajorDraw(self.style, items=self.major.opus.pics).run(
+                    repost
+                )
                 pics.append(cover)
         except Exception as e:
             logger.exception(e)
@@ -369,23 +472,40 @@ class DynMajorOpus(AbstractMajor):
             return None
         return await merge_pictures(pics)
 
-    async def make_title(self,title,repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
-        surface = skia.Surface(1080, self.style.font.font_size.name+20)
+    async def make_title(self, title, repost):
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
+        surface = skia.Surface(1080, self.style.font.font_size.name + 20)
         canvas = surface.getCanvas()
         canvas.clear(skia.Color(*background_color))
-        await self.draw_text(canvas,title,self.style.font.font_size.name,(45,int((self.style.font.font_size.name+40)/2),1035,40,0),self.style.color.font_color.text,font_style=skia.FontStyle().Bold())
+        await self.draw_text(
+            canvas,
+            title,
+            self.style.font.font_size.name,
+            (45, int((self.style.font.font_size.name + 40) / 2), 1035, 40, 0),
+            self.style.color.font_color.text,
+            font_style=skia.FontStyle().Bold(),
+        )
         return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
 
-class DynMajorArticle(AbstractMajor):
 
+class DynMajorArticle(AbstractMajor):
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 640)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 600), 20, background_color)
+            await self.draw_shadow(
+                self.canvas, (35, 20, 1010, 600), 20, background_color
+            )
 
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 600)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
@@ -403,33 +523,58 @@ class DynMajorArticle(AbstractMajor):
             for i, j in enumerate(imgs):
                 await paste(self.canvas, j, (35 + i * 340, 20))
         else:
-            img = await get_pictures(f"{self.major.article.covers[0]}@647w_150h_1c.webp", (1010, 300))
+            img = await get_pictures(
+                f"{self.major.article.covers[0]}@647w_150h_1c.webp", (1010, 300)
+            )
             await paste(self.canvas, img, (35, 20))
 
     async def draw_title_and_desc(self):
         title = self.major.article.title
         if len(self.major.article.covers) > 1:
-            await self.draw_text(self.canvas, title, self.style.font.font_size.text, (50, 410, 960, 330, 0),
-                                 self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                title,
+                self.style.font.font_size.text,
+                (50, 410, 960, 330, 0),
+                self.style.color.font_color.text,
+            )
         else:
-            await self.draw_text(self.canvas, title, self.style.font.font_size.text, (50, 390, 960, 330, 0),
-                                 self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                title,
+                self.style.font.font_size.text,
+                (50, 390, 960, 330, 0),
+                self.style.color.font_color.text,
+            )
         desc = self.major.article.desc
-        await self.draw_text(self.canvas, desc, self.style.font.font_size.title,
-                             (65, 460, 980, 620, int(self.style.font.font_size.title * 1.8)),
-                             self.style.color.font_color.sub_title)
+        await self.draw_text(
+            self.canvas,
+            desc,
+            self.style.font.font_size.title,
+            (65, 460, 980, 620, int(self.style.font.font_size.title * 1.8)),
+            self.style.color.font_color.sub_title,
+        )
+
 
 class DynMajorCommon(AbstractMajor):
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 285)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 245), 20, background_color)
+            await self.draw_shadow(
+                self.canvas, (35, 20, 1010, 245), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 245)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            cover = await get_pictures(f"{self.major.common.cover}@245w_245h_1c.webp", (245, 245))
+            cover = await get_pictures(
+                f"{self.major.common.cover}@245w_245h_1c.webp", (245, 245)
+            )
             await paste(self.canvas, cover, (35, 20))
             await self.make_title()
             await self.make_common_tag()
@@ -440,11 +585,21 @@ class DynMajorCommon(AbstractMajor):
 
     async def make_title(self):
         title = self.major.common.title
-        await self.draw_text(self.canvas, title, self.style.font.font_size.text, (310, 120, 950, 120, 0),
-                             self.style.color.font_color.text)
+        await self.draw_text(
+            self.canvas,
+            title,
+            self.style.font.font_size.text,
+            (310, 120, 950, 120, 0),
+            self.style.color.font_color.text,
+        )
         sub_title = self.major.common.desc
-        await  self.draw_text(self.canvas, sub_title, self.style.font.font_size.title, (310, 190, 970, 190, 0),
-                              self.style.color.font_color.sub_title)
+        await self.draw_text(
+            self.canvas,
+            sub_title,
+            self.style.font.font_size.title,
+            (310, 190, 970, 190, 0),
+            self.style.color.font_color.sub_title,
+        )
 
     async def make_common_tag(self):
         if self.major.common.badge is not None and self.major.common.badge.text != "":
@@ -457,22 +612,36 @@ class DynMajorCommon(AbstractMajor):
             blob = skia.TextBlob(self.major.common.badge.text, self.text_font)
             paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
             canvas.drawTextBlob(blob, 10, int(self.text_font.getSize() + 5), paint)
-            tag_img = skia.Image.fromarray(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-                                           colorType=skia.ColorType.kRGBA_8888_ColorType)
-            await paste(self.canvas, await self.make_round_cornor(tag_img, 10), (280 - tag_width - 20, 40))
+            tag_img = skia.Image.fromarray(
+                canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+                colorType=skia.ColorType.kRGBA_8888_ColorType,
+            )
+            await paste(
+                self.canvas,
+                await self.make_round_cornor(tag_img, 10),
+                (280 - tag_width - 20, 40),
+            )
 
 
 class DynMajorMusic(AbstractMajor):
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 285)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 245), 20, background_color)
+            await self.draw_shadow(
+                self.canvas, (35, 20, 1010, 245), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 245)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            cover = await get_pictures(f"{self.major.music.cover}@245w_245h_1c.webp", (245, 245))
+            cover = await get_pictures(
+                f"{self.major.music.cover}@245w_245h_1c.webp", (245, 245)
+            )
             await paste(self.canvas, cover, (35, 20))
             await self.make_title()
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
@@ -482,36 +651,60 @@ class DynMajorMusic(AbstractMajor):
 
     async def make_title(self):
         title = self.major.music.title
-        await self.draw_text(self.canvas, title, self.style.font.font_size.text, (310, 120, 950, 120, 0),
-                             self.style.color.font_color.text)
+        await self.draw_text(
+            self.canvas,
+            title,
+            self.style.font.font_size.text,
+            (310, 120, 950, 120, 0),
+            self.style.color.font_color.text,
+        )
         sub_title = self.major.music.label
-        await self.draw_text(self.canvas, sub_title, self.style.font.font_size.title, (310, 190, 970, 190, 0),
-                             self.style.color.font_color.sub_title)
+        await self.draw_text(
+            self.canvas,
+            sub_title,
+            self.style.font.font_size.title,
+            (310, 190, 970, 190, 0),
+            self.style.color.font_color.sub_title,
+        )
 
 
 class DynMajorPgc(AbstractMajor):
-
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
-            cover = await get_pictures(f"{self.major.pgc.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            cover = await get_pictures(
+                f"{self.major.pgc.cover}@505w_285h_1c.webp", (1010, 570)
+            )
+            await self.draw_shadow(
+                self.canvas, (35, 25, 1010, 655), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await self.draw_text(self.canvas, self.major.pgc.title, self.style.font.font_size.text,
-                                 (60, 650, 980, 600, 10), self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                self.major.pgc.title,
+                self.style.font.font_size.text,
+                (60, 650, 980, 600, 10),
+                self.style.color.font_color.text,
+            )
             await paste(self.canvas, cover, (35, 25))
             await paste(self.canvas, tv, (905, 455))
-            if self.major.pgc.badge is not None and self.major.pgc.badge.text != '':
+            if self.major.pgc.badge is not None and self.major.pgc.badge.text != "":
                 tag = self.major.pgc.badge.text
             else:
                 tag = "投稿视频"
             await self.make_tag(tag, self.style.font.font_size.text)
-            await self.make_sub_tag(f"{self.major.pgc.stat.play}播放", self.style.font.font_size.title)
+            await self.make_sub_tag(
+                f"{self.major.pgc.stat.play}播放", self.style.font.font_size.title
+            )
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception:
             logger.exception("Error")
@@ -519,27 +712,41 @@ class DynMajorPgc(AbstractMajor):
 
 
 class DynMajorMediaList(AbstractMajor):
-
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
-            cover = await get_pictures(f"{self.major.medialist.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            cover = await get_pictures(
+                f"{self.major.medialist.cover}@505w_285h_1c.webp", (1010, 570)
+            )
+            await self.draw_shadow(
+                self.canvas, (35, 25, 1010, 655), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await self.draw_text(self.canvas, self.major.medialist.title, self.style.font.font_size.text,
-                                 (60, 650, 980, 600, 10), self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                self.major.medialist.title,
+                self.style.font.font_size.text,
+                (60, 650, 980, 600, 10),
+                self.style.color.font_color.text,
+            )
             await paste(self.canvas, cover, (35, 25))
             if self.major.medialist.badge is not None:
                 tag = self.major.medialist.badge.text
             else:
                 tag = "投稿视频"
             await self.make_tag(tag, self.style.font.font_size.text)
-            await self.make_sub_tag(self.major.medialist.sub_title, self.style.font.font_size.title)
+            await self.make_sub_tag(
+                self.major.medialist.sub_title, self.style.font.font_size.title
+            )
             await paste(self.canvas, tv, (905, 455))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
@@ -548,27 +755,44 @@ class DynMajorMediaList(AbstractMajor):
 
 
 class DynMajorCourses(AbstractMajor):
-
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
-            cover = await get_pictures(f"{self.major.courses.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            cover = await get_pictures(
+                f"{self.major.courses.cover}@505w_285h_1c.webp", (1010, 570)
+            )
+            await self.draw_shadow(
+                self.canvas, (35, 25, 1010, 655), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await self.draw_text(self.canvas, self.major.courses.title, self.style.font.font_size.text,
-                                 (60, 650, 980, 600, 10), self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                self.major.courses.title,
+                self.style.font.font_size.text,
+                (60, 650, 980, 600, 10),
+                self.style.color.font_color.text,
+            )
             await paste(self.canvas, cover, (35, 25))
-            if self.major.courses.badge is not None and self.major.courses.badge.text != '':
+            if (
+                self.major.courses.badge is not None
+                and self.major.courses.badge.text != ""
+            ):
                 tag = self.major.courses.badge.text
             else:
                 tag = "投稿视频"
             await self.make_tag(tag, self.style.font.font_size.text)
-            await self.make_sub_tag(self.major.courses.desc, self.style.font.font_size.title)
+            await self.make_sub_tag(
+                self.major.courses.desc, self.style.font.font_size.title
+            )
             await paste(self.canvas, tv, (905, 455))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
@@ -577,27 +801,44 @@ class DynMajorCourses(AbstractMajor):
 
 
 class DynMajorUgc(AbstractMajor):
-
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
-            cover = await get_pictures(f"{self.major.ugc_season.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            cover = await get_pictures(
+                f"{self.major.ugc_season.cover}@505w_285h_1c.webp", (1010, 570)
+            )
+            await self.draw_shadow(
+                self.canvas, (35, 25, 1010, 655), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await self.draw_text(self.canvas, self.major.ugc_season.title, self.style.font.font_size.text,
-                                 (60, 650, 980, 600, 10), self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                self.major.ugc_season.title,
+                self.style.font.font_size.text,
+                (60, 650, 980, 600, 10),
+                self.style.color.font_color.text,
+            )
             await paste(self.canvas, cover, (35, 25))
-            if self.major.ugc_season.badge is not None and self.major.ugc_season.badge.text != '':
+            if (
+                self.major.ugc_season.badge is not None
+                and self.major.ugc_season.badge.text != ""
+            ):
                 tag = self.major.ugc_season.badge.text
             else:
                 tag = "投稿视频"
             await self.make_tag(tag, self.style.font.font_size.text)
-            await self.make_sub_tag(self.major.ugc_season.duration_text, self.style.font.font_size.title)
+            await self.make_sub_tag(
+                self.major.ugc_season.duration_text, self.style.font.font_size.title
+            )
             await paste(self.canvas, tv, (905, 455))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
@@ -606,27 +847,41 @@ class DynMajorUgc(AbstractMajor):
 
 
 class DynMajorLive(AbstractMajor):
-
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            cover = await get_pictures(f"{self.major.live.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            cover = await get_pictures(
+                f"{self.major.live.cover}@505w_285h_1c.webp", (1010, 570)
+            )
+            await self.draw_shadow(
+                self.canvas, (35, 25, 1010, 655), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await self.draw_text(self.canvas, self.major.live.title, self.style.font.font_size.text,
-                                 (60, 650, 980, 600, 10), self.style.color.font_color.text)
+            await self.draw_text(
+                self.canvas,
+                self.major.live.title,
+                self.style.font.font_size.text,
+                (60, 650, 980, 600, 10),
+                self.style.color.font_color.text,
+            )
             await paste(self.canvas, cover, (35, 25))
-            if self.major.live.badge is not None and self.major.live.badge.text != '':
+            if self.major.live.badge is not None and self.major.live.badge.text != "":
                 tag = self.major.live.badge.text
             else:
                 tag = "投稿视频"
             await self.make_tag(tag, self.style.font.font_size.text)
 
-            await self.make_sub_tag(self.major.live.desc_second, self.style.font.font_size.title)
+            await self.make_sub_tag(
+                self.major.live.desc_second, self.style.font.font_size.title
+            )
 
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
@@ -635,9 +890,12 @@ class DynMajorLive(AbstractMajor):
 
 
 class DynMajorNone(AbstractMajor):
-    
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 100)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
@@ -647,30 +905,58 @@ class DynMajorNone(AbstractMajor):
         except Exception as e:
             logger.exception(e)
             return None
-        
+
     async def make_tips(self):
         error = skia.Image.open(path.join(self.src_path, "error.png")).resize(40, 40)
-        await self.draw_text(self.canvas,self.major.none.tips,self.style.font.font_size.text,(90,60,1080,40,0),self.style.color.font_color.sub_title)
+        await self.draw_text(
+            self.canvas,
+            self.major.none.tips,
+            self.style.font.font_size.text,
+            (90, 60, 1080, 40, 0),
+            self.style.color.font_color.sub_title,
+        )
         await paste(self.canvas, error, (40, 30))
+
 
 class DynMajorBlocked(AbstractMajor):
     async def run(self, repost):
-        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
+        background_color = (
+            self.style.color.background.repost
+            if repost
+            else self.style.color.background.normal
+        )
         surface = skia.Surface(1080, 1200)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            result = await get_pictures([f"{self.major.blocked.bg_img.img_dark}@1c.webp",self.major.blocked.icon.img_day])            
-            await self.draw_shadow(self.canvas, (40, 100, 1000, 1000), 20, background_color)
+            result = await get_pictures(
+                [
+                    f"{self.major.blocked.bg_img.img_dark}@1c.webp",
+                    self.major.blocked.icon.img_day,
+                ]
+            )
+            await self.draw_shadow(
+                self.canvas, (40, 100, 1000, 1000), 20, background_color
+            )
             rec = skia.Rect.MakeXYWH(40, 100, 1000, 1000)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
-            await paste(self.canvas,result[1],(456,380))
-            await paste(self.canvas, result[0].resize(1000,1000), (40, 100))
+            await paste(self.canvas, result[1], (456, 380))
+            await paste(self.canvas, result[0].resize(1000, 1000), (40, 100))
             text = self.major.blocked.hint_message.split("\n")
-            await self.draw_text(self.canvas, text[0], self.style.font.font_size.name,
-                                 (380, 630, 980, 600, 10), self.style.color.font_color.sub_title)
-            await self.draw_text(self.canvas, text[1], self.style.font.font_size.name,
-                                 (160, 700, 980, 600, 10), self.style.color.font_color.sub_title)
+            await self.draw_text(
+                self.canvas,
+                text[0],
+                self.style.font.font_size.name,
+                (380, 630, 980, 600, 10),
+                self.style.color.font_color.sub_title,
+            )
+            await self.draw_text(
+                self.canvas,
+                text[1],
+                self.style.font.font_size.name,
+                (160, 700, 980, 600, 10),
+                self.style.color.font_color.sub_title,
+            )
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
             logger.exception(e)

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 @File    :   Core.py
 @Time    :   2023/07/13 15:21:46
 @Author  :   Polyisoprene 
 @Version :   1.0
 @Desc    :   None
-'''
+"""
 import asyncio
 
 from dynamicadaptor.Message import RenderMessage
@@ -20,10 +20,13 @@ from .DynTools import merge_pictures
 
 
 class DynRender:
-    def __init__(self, font_family: str = "Noto Sans CJK SC",
-                 emoji_font_family: str = "Noto Color Emoji",
-                 font_style: str = "Normal",
-                 static_path: str = None) -> None:
+    def __init__(
+        self,
+        font_family: str = "Noto Sans CJK SC",
+        emoji_font_family: str = "Noto Color Emoji",
+        font_style: str = "Normal",
+        static_path: str = None,
+    ) -> None:
         """create static file and set font family and font style
 
         Args:
@@ -46,7 +49,9 @@ class DynRender:
             tasks.append(BiliRepost(self.static_path, self.style).run(message.forward))
 
         if message.additional is not None:
-            tasks.append(BiliAdditional(self.static_path, self.style).run(message.additional))
+            tasks.append(
+                BiliAdditional(self.static_path, self.style).run(message.additional)
+            )
 
         tasks.append(Footer(self.static_path, self.style).run())
         result = await asyncio.gather(*tasks)

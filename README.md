@@ -40,7 +40,7 @@ pip install dynamicadaptor dynrender-skia
 import httpx
 import asyncio
 import skia
-from dynrender_skia.Core import DynRender
+from dynrender.Core import DynRender
 from dynamicadaptor.DynamicConversion import formate_message
 
 

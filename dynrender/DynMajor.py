@@ -19,7 +19,6 @@ from dynamicadaptor.Majors import Major
 from dynamicadaptor.Content import Text
 from math import ceil
 from .DynText import BiliText
-from os import path
 from abc import ABC, abstractmethod
 
 

@@ -43,9 +43,13 @@ async def merge_pictures(img_list: List[ndarray]) -> ndarray:
     img_top = np.zeros([0, 1080, 4], np.uint8)
     if len(img_list) == 1 and img_list[0] is not None:
         return img_list[0]
-    for i in img_list:
-        if i is not None:
-            img_top = np.vstack((img_top, i))
+    for img in img_list:
+        if img is not None:
+            if img.shape[1] != 1080:
+                raise ValueError("The width of the image must be 1080")
+            img_top = np.vstack((img_top, img))
+        else:
+            continue
     return img_top
 
 

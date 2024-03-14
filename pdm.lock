@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:f7d7fbea6a40c34f5bf22eb898ce23f198f00cc5f5731de65b521dcb0db32457"
+content_hash = "sha256:5c04a87cee79e48de204422279e6b833ddb7b40dd65ee177c17efddf60464d13"
 
 [[package]]
 name = "annotated-types"
@@ -528,6 +528,19 @@ dependencies = [
 files = [
     {file = "pytest-xdist-3.5.0.tar.gz", hash = "sha256:cbb36f3d67e0c478baa57fa4edc8843887e0f6cfc42d677530a36d7472b32d8a"},
     {file = "pytest_xdist-3.5.0-py3-none-any.whl", hash = "sha256:d075629c7e00b611df89f490a5063944bee7a4362a5ff11c7cc7824a03dfce24"},
+]
+
+[[package]]
+name = "respx"
+version = "0.20.2"
+requires_python = ">=3.7"
+summary = "A utility for mocking out the Python HTTPX and HTTP Core libraries."
+dependencies = [
+    "httpx>=0.21.0",
+]
+files = [
+    {file = "respx-0.20.2-py2.py3-none-any.whl", hash = "sha256:ab8e1cf6da28a5b2dd883ea617f8130f77f676736e6e9e4a25817ad116a172c9"},
+    {file = "respx-0.20.2.tar.gz", hash = "sha256:07cf4108b1c88b82010f67d3c831dae33a375c7b436e54d87737c7f9f99be643"},
 ]
 
 [[package]]

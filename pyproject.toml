@@ -34,3 +34,5 @@ includes = ["dynrender"]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+[pytest]
+asyncio_mode = "auto"

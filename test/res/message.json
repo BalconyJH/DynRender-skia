@@ -1,0 +1,232 @@
+{
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "item": {
+      "basic": {
+        "comment_id_str": "191",
+        "comment_type": 33,
+        "like_icon": {
+          "action_url": "",
+          "end_url": "",
+          "id": 0,
+          "start_url": ""
+        },
+        "rid_str": "191"
+      },
+      "id_str": "440646043801479846",
+      "modules": {
+        "module_author": {
+          "avatar": {
+            "container_size": {
+              "height": 1.35,
+              "width": 1.35
+            },
+            "fallback_layers": {
+              "is_critical_group": true,
+              "layers": [
+                {
+                  "general_spec": {
+                    "pos_spec": {
+                      "axis_x": 0.675,
+                      "axis_y": 0.675,
+                      "coordinate_pos": 2
+                    },
+                    "render_spec": {
+                      "opacity": 1
+                    },
+                    "size_spec": {
+                      "height": 1,
+                      "width": 1
+                    }
+                  },
+                  "layer_config": {
+                    "is_critical": true,
+                    "tags": {
+                      "AVATAR_LAYER": {},
+                      "GENERAL_CFG": {
+                        "config_type": 1,
+                        "general_config": {
+                          "web_css_style": {
+                            "borderRadius": "50%"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "resource": {
+                    "res_image": {
+                      "image_src": {
+                        "placeholder": 6,
+                        "remote": {
+                          "bfs_style": "widget-layer-avatar",
+                          "url": "https://i0.hdslb.com/bfs/face/3d0dba3789065512f5217387ab135a093ae10c45.jpg"
+                        },
+                        "src_type": 1
+                      }
+                    },
+                    "res_type": 3
+                  },
+                  "visible": true
+                },
+                {
+                  "general_spec": {
+                    "pos_spec": {
+                      "axis_x": 0.8000000000000002,
+                      "axis_y": 0.8000000000000002,
+                      "coordinate_pos": 1
+                    },
+                    "render_spec": {
+                      "opacity": 1
+                    },
+                    "size_spec": {
+                      "height": 0.41666666666666663,
+                      "width": 0.41666666666666663
+                    }
+                  },
+                  "layer_config": {
+                    "tags": {
+                      "GENERAL_CFG": {
+                        "config_type": 1,
+                        "general_config": {
+                          "web_css_style": {
+                            "background-color": "rgb(255,255,255)",
+                            "border": "2px solid rgba(255,255,255,1)",
+                            "borderRadius": "50%",
+                            "boxSizing": "border-box"
+                          }
+                        }
+                      },
+                      "ICON_LAYER": {}
+                    }
+                  },
+                  "resource": {
+                    "res_image": {
+                      "image_src": {
+                        "local": 4,
+                        "src_type": 2
+                      }
+                    },
+                    "res_type": 3
+                  },
+                  "visible": true
+                }
+              ]
+            },
+            "mid": "10330740"
+          },
+          "face": "https://i0.hdslb.com/bfs/face/3d0dba3789065512f5217387ab135a093ae10c45.jpg",
+          "face_nft": false,
+          "following": null,
+          "jump_url": "//space.bilibili.com/10330740/dynamic",
+          "label": "",
+          "mid": 10330740,
+          "name": "观察者网",
+          "official_verify": {
+            "desc": "",
+            "type": 1
+          },
+          "pendant": {
+            "expire": 0,
+            "image": "",
+            "image_enhance": "",
+            "image_enhance_frame": "",
+            "n_pid": 0,
+            "name": "",
+            "pid": 0
+          },
+          "pub_action": "发布了课程",
+          "pub_location_text": "",
+          "pub_time": "2020年09月30日 10:51",
+          "pub_ts": 1601434302,
+          "type": "AUTHOR_TYPE_NORMAL",
+          "vip": {
+            "avatar_subscript": 0,
+            "avatar_subscript_url": "",
+            "due_date": 1685980800000,
+            "label": {
+              "bg_color": "",
+              "bg_style": 0,
+              "border_color": "",
+              "img_label_uri_hans": "",
+              "img_label_uri_hans_static": "https://i0.hdslb.com/bfs/vip/d7b702ef65a976b20ed854cbd04cb9e27341bb79.png",
+              "img_label_uri_hant": "",
+              "img_label_uri_hant_static": "https://i0.hdslb.com/bfs/activity-plat/static/20220614/e369244d0b14644f5e1a06431e22a4d5/KJunwh19T5.png",
+              "label_theme": "",
+              "path": "",
+              "text": "",
+              "text_color": "",
+              "use_img_label": true
+            },
+            "nickname_color": "",
+            "status": 0,
+            "theme_type": 0,
+            "type": 1
+          }
+        },
+        "module_dynamic": {
+          "additional": null,
+          "desc": {
+            "rich_text_nodes": [
+              {
+                "jump_url": "//search.bilibili.com/all?keyword=%E3%80%90%E5%BC%80%E5%AD%A6%E5%AD%A3%E7%89%B9%E6%83%A0%E3%80%91%E6%B2%88%E9%80%B8%EF%BC%9A%E7%99%BD%E5%AE%AB%E9%87%8C%E7%9A%84%E4%B8%BB%E8%A7%92%E4%BB%AC",
+                "orig_text": "#【开学季特惠】沈逸：白宫里的主角们#",
+                "text": "#【开学季特惠】沈逸：白宫里的主角们#",
+                "type": "RICH_TEXT_NODE_TYPE_TOPIC"
+              },
+              {
+                "orig_text": "已开启，快来学习新知识吧～",
+                "text": "已开启，快来学习新知识吧～",
+                "type": "RICH_TEXT_NODE_TYPE_TEXT"
+              }
+            ],
+            "text": "#【开学季特惠】沈逸：白宫里的主角们#已开启，快来学习新知识吧～"
+          },
+          "major": {
+            "courses": {
+              "badge": {
+                "bg_color": "#FB7199",
+                "color": "#ffffff",
+                "text": "课堂"
+              },
+              "cover": "http://i0.hdslb.com/bfs/archive/77990850ab5ad7583ada37238cf08f033bdd97cc.jpg",
+              "desc": "已完结 | 共25课时",
+              "id": 191,
+              "jump_url": "https://m.bilibili.com/cheese/play/ss191?csource=private_moments_share_classdetail",
+              "sub_title": "细说美国的“黄金40年”与霸权陨落\n每周五上午10：30更新~",
+              "title": "【开学季特惠】沈逸：白宫里的主角们"
+            },
+            "type": "MAJOR_TYPE_COURSES"
+          },
+          "topic": null
+        },
+        "module_more": {
+          "three_point_items": [
+            {
+              "label": "举报",
+              "type": "THREE_POINT_REPORT"
+            }
+          ]
+        },
+        "module_stat": {
+          "comment": {
+            "count": 0,
+            "forbidden": false
+          },
+          "forward": {
+            "count": 1193,
+            "forbidden": false
+          },
+          "like": {
+            "count": 0,
+            "forbidden": false,
+            "status": false
+          }
+        }
+      },
+      "type": "DYNAMIC_TYPE_COURSES_SEASON",
+      "visible": true
+    }
+  }
+}

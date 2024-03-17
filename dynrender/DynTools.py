@@ -15,7 +15,9 @@ from numpy import ndarray
 from .DynStyle import PolyStyle
 
 
-async def get_pictures(url: Union[str, list], size: Optional[tuple] = None):
+async def get_pictures(
+    url: Union[str, list], size: Optional[tuple] = None
+) -> Union[skia.Image, tuple[skia.Image]]:
     async with httpx.AsyncClient() as client:
         if isinstance(url, list):
             return await asyncio.gather(*[request_img(client, i, size) for i in url])
@@ -23,7 +25,7 @@ async def get_pictures(url: Union[str, list], size: Optional[tuple] = None):
             return await request_img(client, url, size)
 
 
-async def request_img(client, url, size):
+async def request_img(client, url, size) -> Optional[skia.Image]:
     try:
         resp = await client.get(url)
         assert resp.status_code == 200

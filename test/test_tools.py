@@ -1,12 +1,14 @@
+import pathlib
 from pathlib import Path
 
 import httpx
-import pytest
 import numpy as np
+import pytest
 import pytest_asyncio
 import respx
+import skia
 
-from dynrender.DynTools import merge_pictures, request_img
+from dynrender.DynTools import merge_pictures, request_img, get_pictures
 
 
 @pytest.mark.asyncio
@@ -25,8 +27,8 @@ class TestMergePictures:
         assert np.array_equal(result, expected)
 
     async def test_with_some_invalid_images(self):
-        img1 = np.zeros([1080, 1920, 4], np.uint8)  # Invalid width
-        img2 = None  # None image
+        img1 = np.zeros([1080, 1920, 4], np.uint8)
+        img2 = None
         img_list = [img1, img2]
         with pytest.raises(ValueError) as exc_info:
             await merge_pictures(img_list)
@@ -34,7 +36,7 @@ class TestMergePictures:
 
     async def test_with_all_invalid_images(self):
         img_list = [None, None]
-        result = await merge_pictures(img_list)
+        result = await merge_pictures(img_list)  # noqa
         expected = np.zeros([0, 1080, 4], np.uint8)
         assert np.array_equal(result, expected)
 
@@ -98,9 +100,51 @@ class TestRequestImg:
             img = await request_img(client, img_url, size)
             assert img.height() == 100 and img.width() == 100
 
-    async def test_request_img_with_respx_invalid_url(self, client, img_url):
+    async def test_request_img_with_exception(self, client, img_url):
         async with respx.mock(base_url=img_url) as mock:
             mock.get(img_url).mock(side_effect=httpx.ConnectError("Connection error"))
 
             img = await request_img(client, img_url, None)
             assert img is None
+
+
+@pytest.mark.asyncio
+class TestGetPictures:
+    @pytest.fixture
+    def img_url(self):
+        return "http://bilibili.com"
+
+    @pytest.fixture
+    def img_path(self, resource_dir):
+        return Path(resource_dir / "bilibili.png")
+
+    @pytest.fixture
+    def mock_skia_image(self, img_path):
+        return skia.Image.MakeFromEncoded(encoded=img_path.read_bytes())  # noqa
+
+    async def test_get_pictures_with_single_url(
+        self, img_url: str, img_path: pathlib.Path, mock_skia_image: skia.Image
+    ) -> None:
+        async with respx.mock(base_url=img_url) as mock:
+            img_content = img_path.read_bytes()
+            mock.get(img_url).respond(content=img_content, status_code=200)
+
+            img_array = (await get_pictures(img_url, None)).toarray(
+                colorType=skia.ColorType.kRGBA_8888_ColorType
+            )
+            result = mock_skia_image.toarray(
+                colorType=skia.ColorType.kRGBA_8888_ColorType
+            )
+
+            assert np.allclose(img_array, result)
+
+    async def test_get_pictures_with_multiple_urls(
+        self, img_url: str, img_path: pathlib.Path
+    ) -> None:
+        async with respx.mock(base_url=img_url) as mock:
+            img_content = img_path.read_bytes()
+            mock.get(img_url).respond(content=img_content, status_code=200)
+
+            img_list = await get_pictures([img_url, img_url], None)
+            assert len(img_list) == 2
+            assert all(img is not None for img in img_list)

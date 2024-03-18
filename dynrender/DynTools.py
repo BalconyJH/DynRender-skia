@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # @Time    : 2023/7/15 下午9:22
 # @Author  : Polyisoprene
 # @File    : DynTools.py
@@ -15,9 +14,7 @@ from numpy import ndarray
 from .DynStyle import PolyStyle
 
 
-async def get_pictures(
-    url: Union[str, list], size: Optional[tuple] = None
-) -> Union[skia.Image, tuple[skia.Image]]:
+async def get_pictures(url: Union[str, list], size: Optional[tuple] = None) -> Union[skia.Image, tuple[skia.Image]]:
     async with httpx.AsyncClient() as client:
         if isinstance(url, list):
             return await asyncio.gather(*[request_img(client, i, size) for i in url])
@@ -34,11 +31,9 @@ async def request_img(client, url, size) -> Optional[skia.Image]:
             return img.resize(*size)
         return img
 
-    except:
+    except:  # noqa: E722
         logger.exception("e")
         return None
-
-        #     pas
 
 
 async def merge_pictures(img_list: List[ndarray]) -> ndarray:
@@ -71,21 +66,15 @@ class DrawText:
     def __init__(self, style: PolyStyle):
         self.style = style
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromName(
-                self.style.font.font_family, self.style.font.font_style
-            ),
+            skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromName(
-                self.style.font.emoji_font_family, self.style.font.font_style
-            ),
+            skia.Typeface.MakeFromName(self.style.font.emoji_font_family, self.style.font.font_style),
             self.style.font.font_size.text,
         )
 
-    async def draw_text(
-        self, canvas, text: str, font_size, pos: tuple, font_color: tuple
-    ):
+    async def draw_text(self, canvas, text: str, font_size, pos: tuple, font_color: tuple):
         paint = skia.Paint(AntiAlias=True, Color=skia.Color(*font_color))
         self.text_font.setSize(font_size)
         self.emoji_font.setSize(font_size)

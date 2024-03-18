@@ -148,9 +148,7 @@ class BiliHeader:
         )
 
     async def paste_logo(self) -> None:
-        logo = skia.Image.open(path.join(self.src_path, "bilibili.png")).resize(
-            231, 105
-        )
+        logo = skia.Image.open(path.join(self.src_path, "bilibili.png")).resize(231, 105)
         await self.paste(logo, (433, 20))
 
     async def draw_name(self):
@@ -294,9 +292,7 @@ class Footer:
         paint = skia.Paint(
             Color=skia.Color(*bg_color),
             AntiAlias=True,
-            ImageFilter=skia.ImageFilters.DropShadow(
-                0, 0, 10, 10, skia.Color(120, 120, 120)
-            ),
+            ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120)),
         )
         if corner != 0:
             canvas.drawRoundRect(rec, corner, corner, paint)

@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 @File    :   DynConfig.py
 @Time    :   2023/07/13 14:20:02
-@Author  :   Polyisoprene 
+@Author  :   Polyisoprene
 @Version :   1.0
 @Desc    :   None
 """
+
 import json
 from os import getcwd, makedirs, path
 from typing import Optional
@@ -93,9 +93,7 @@ class MakeStaticFile:
 
 
 class SetDynStyle:
-    def __init__(
-        self, font_family: str, emoji_font_family: str, font_style: str
-    ) -> None:
+    def __init__(self, font_family: str, emoji_font_family: str, font_style: str) -> None:
         self.font_family = font_family
         self.font_style = font_style
         self.emoji_font_family = emoji_font_family

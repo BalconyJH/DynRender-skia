@@ -19,15 +19,11 @@ class AbstractAdditional(ABC):
         self.src_path = src_path
         self.canvas = None
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromName(
-                self.style.font.font_family, self.style.font.font_style
-            ),
+            skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromName(
-                self.style.font.emoji_font_family, self.style.font.font_style
-            ),
+            skia.Typeface.MakeFromName(self.style.font.emoji_font_family, self.style.font.font_style),
             self.style.font.font_size.text,
         )
 
@@ -35,9 +31,7 @@ class AbstractAdditional(ABC):
     async def run(self, repost: bool) -> Optional[np.ndarray]:
         pass
 
-    async def make_badge(
-        self, badge: str, font_size: int, pos: tuple, img_size: tuple, text_pos: tuple
-    ):
+    async def make_badge(self, badge: str, font_size: int, pos: tuple, img_size: tuple, text_pos: tuple):
         self.text_font.setSize(font_size)
         surface = skia.Surface(*img_size)
         canvas = surface.getCanvas()
@@ -66,9 +60,7 @@ class AbstractAdditional(ABC):
             img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
         )
-        return skia.Image.fromarray(
-            image_array, colorType=skia.ColorType.kRGBA_8888_ColorType
-        )
+        return skia.Image.fromarray(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
 
     async def draw_shadow(self, canvas, pos: tuple, corner: int, bg_color):
         x, y, width, height = pos
@@ -76,9 +68,7 @@ class AbstractAdditional(ABC):
         paint = skia.Paint(
             Color=skia.Color(*bg_color),
             AntiAlias=True,
-            ImageFilter=skia.ImageFilters.DropShadow(
-                0, 0, 10, 10, skia.Color(120, 120, 120)
-            ),
+            ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120)),
         )
         if corner != 0:
             canvas.drawRoundRect(rec, corner, corner, paint)
@@ -91,35 +81,21 @@ class BiliAdditional:
         self.src_path = path.join(static_path, "Src")
         self.style = style
 
-    async def run(
-        self, additional: Additional, repost: bool = False
-    ) -> Optional[np.ndarray]:
+    async def run(self, additional: Additional, repost: bool = False) -> Optional[np.ndarray]:
         additional_type = additional.type
         try:
             if additional_type == "ADDITIONAL_TYPE_RESERVE":
-                return await DynAddReserve(self.src_path, self.style, additional).run(
-                    repost
-                )
+                return await DynAddReserve(self.src_path, self.style, additional).run(repost)
             elif additional_type == "ADDITIONAL_TYPE_UPOWER_LOTTERY":
-                return await DynAddUpOwerLottery(
-                    self.src_path, self.style, additional
-                ).run(repost)
+                return await DynAddUpOwerLottery(self.src_path, self.style, additional).run(repost)
             elif additional_type == "ADDITIONAL_TYPE_GOODS":
-                return await DynAddGoods(self.src_path, self.style, additional).run(
-                    repost
-                )
+                return await DynAddGoods(self.src_path, self.style, additional).run(repost)
             elif additional_type == "ADDITIONAL_TYPE_UGC":
-                return await DynAddUgc(self.src_path, self.style, additional).run(
-                    repost
-                )
+                return await DynAddUgc(self.src_path, self.style, additional).run(repost)
             elif additional_type == "ADDITIONAL_TYPE_VOTE":
-                return await DynAddVote(self.src_path, self.style, additional).run(
-                    repost
-                )
+                return await DynAddVote(self.src_path, self.style, additional).run(repost)
             elif additional_type == "ADDITIONAL_TYPE_COMMON":
-                return await DynAddCommon(self.src_path, self.style, additional).run(
-                    repost
-                )
+                return await DynAddCommon(self.src_path, self.style, additional).run(repost)
             else:
                 logger.warning(f"{additional_type} IS NOT SUPPORT NOW")
                 return None
@@ -130,22 +106,14 @@ class BiliAdditional:
 
 class DynAddReserve(AbstractAdditional):
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = (
-            self.style.color.background.repost
-            if repost
-            else self.style.color.background.normal
-        )
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 225)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(
-                self.canvas, (35, 20, 1010, 185), 15, background_color
-            )
+            await self.draw_shadow(self.canvas, (35, 20, 1010, 185), 15, background_color)
             await self.make_desc()
-            await self.make_badge(
-                "预约", self.style.font.font_size.text, (850, 75), (170, 75), (45, 50)
-            )
+            await self.make_badge("预约", self.style.font.font_size.text, (850, 75), (170, 75), (45, 50))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
             logger.exception(e)
@@ -178,9 +146,7 @@ class DynAddReserve(AbstractAdditional):
                 self.style.color.font_color.rich_text,
             )
 
-            lottery_img = skia.Image.open(
-                path.join(self.src_path, "lottery.png")
-            ).resize(40, 40)
+            lottery_img = skia.Image.open(path.join(self.src_path, "lottery.png")).resize(40, 40)
             await paste(self.canvas, lottery_img, (65, 138))
         else:
             await draw.draw_text(
@@ -203,22 +169,14 @@ class DynAddReserve(AbstractAdditional):
 
 class DynAddUpOwerLottery(AbstractAdditional):
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = (
-            self.style.color.background.repost
-            if repost
-            else self.style.color.background.normal
-        )
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 225)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(
-                self.canvas, (35, 20, 1010, 185), 15, background_color
-            )
+            await self.draw_shadow(self.canvas, (35, 20, 1010, 185), 15, background_color)
             await self.make_desc()
-            await self.make_badge(
-                "去看看", self.style.font.font_size.time, (860, 75), (155, 75), (25, 50)
-            )
+            await self.make_badge("去看看", self.style.font.font_size.time, (860, 75), (155, 75), (25, 50))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
             logger.exception(e)
@@ -241,26 +199,18 @@ class DynAddUpOwerLottery(AbstractAdditional):
             (105, 160, 810, 160, 0),
             self.style.color.font_color.rich_text,
         )
-        lottery_img = skia.Image.open(path.join(self.src_path, "lottery.png")).resize(
-            40, 40
-        )
+        lottery_img = skia.Image.open(path.join(self.src_path, "lottery.png")).resize(40, 40)
         await paste(self.canvas, lottery_img, (65, 128))
 
 
 class DynAddGoods(AbstractAdditional):
     async def run(self, repost):
-        background_color = (
-            self.style.color.background.repost
-            if repost
-            else self.style.color.background.normal
-        )
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 310)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(
-                self.canvas, (35, 50, 1010, 240), 15, background_color
-            )
+            await self.draw_shadow(self.canvas, (35, 50, 1010, 240), 15, background_color)
             await self.make_cover()
             await self.make_title_desc()
             await DrawText(self.style).draw_text(
@@ -278,7 +228,7 @@ class DynAddGoods(AbstractAdditional):
     async def make_cover(self):
         url_list = []
         for i in self.additional.goods.items:
-            url = re.sub("@(\d+)h_(\d+)w\S+", "", i.cover)
+            url = re.sub(r"@(\d+)h_(\d+)w\S+", "", i.cover)
             url_list.append(f"{url}@160w_160h_1c.webp")
         covers = await get_pictures(url_list, (190, 190))
         if len(covers) > 1:
@@ -288,9 +238,7 @@ class DynAddGoods(AbstractAdditional):
                     break
                 await paste(self.canvas, await self.make_round_cornor(j, 10), (x, 75))
         else:
-            await paste(
-                self.canvas, await self.make_round_cornor(covers[0], 10), (60, 75)
-            )
+            await paste(self.canvas, await self.make_round_cornor(covers[0], 10), (60, 75))
             await self.make_badge(
                 "去看看",
                 self.style.font.font_size.time,
@@ -323,18 +271,12 @@ class DynAddGoods(AbstractAdditional):
 
 class DynAddUgc(AbstractAdditional):
     async def run(self, repost):
-        background_color = (
-            self.style.color.background.repost
-            if repost
-            else self.style.color.background.normal
-        )
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 280)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(
-                self.canvas, (35, 20, 1010, 240), 15, background_color
-            )
+            await self.draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 240)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.make_cover()
@@ -388,25 +330,17 @@ class DynAddUgc(AbstractAdditional):
 
 class DynAddVote(AbstractAdditional):
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = (
-            self.style.color.background.repost
-            if repost
-            else self.style.color.background.normal
-        )
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 280)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(
-                self.canvas, (35, 20, 1010, 240), 15, background_color
-            )
+            await self.draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 240)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.make_cover()
             await self.make_title_desc()
-            await self.make_badge(
-                "投票", self.style.font.font_size.time, (860, 95), (155, 75), (42, 50)
-            )
+            await self.make_badge("投票", self.style.font.font_size.time, (860, 95), (155, 75), (42, 50))
 
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
         except Exception as e:
@@ -414,9 +348,7 @@ class DynAddVote(AbstractAdditional):
             return None
 
     async def make_cover(self):
-        cover = skia.Image.open(fp=path.join(self.src_path, "vote_icon.png")).resize(
-            195, 195
-        )
+        cover = skia.Image.open(fp=path.join(self.src_path, "vote_icon.png")).resize(195, 195)
         await paste(self.canvas, await self.make_round_cornor(cover, 10), (60, 45))
 
     async def make_title_desc(self):
@@ -444,18 +376,12 @@ class DynAddVote(AbstractAdditional):
 
 class DynAddCommon(AbstractAdditional):
     async def run(self, repost) -> Optional[np.ndarray]:
-        background_color = (
-            self.style.color.background.repost
-            if repost
-            else self.style.color.background.normal
-        )
+        background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 340)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(
-                self.canvas, (35, 80, 1010, 245), 15, background_color
-            )
+            await self.draw_shadow(self.canvas, (35, 80, 1010, 245), 15, background_color)
 
             await DrawText(self.style).draw_text(
                 self.canvas,
@@ -547,6 +473,4 @@ class DynAddCommon(AbstractAdditional):
         badge_text = badge_text_map.get(self.additional.common.sub_type, "去看看")
         size = self.text_font.measureText(badge_text)
         x = int((155 - size) / 2)
-        await self.make_badge(
-            badge_text, self.style.font.font_size.time, (860, 165), (155, 75), (x, 50)
-        )
+        await self.make_badge(badge_text, self.style.font.font_size.time, (860, 165), (155, 75), (x, 50))

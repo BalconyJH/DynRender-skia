@@ -13,12 +13,12 @@ from dynrender.DynTools import merge_pictures, request_img, get_pictures
 
 @pytest.mark.asyncio
 class TestMergePictures:
-    async def test_with_single_valid_image(self):
+    async def test_with_single_valid_image(self) -> None:
         img_list = [np.zeros([1080, 1080, 4], np.uint8)]
         result = await merge_pictures(img_list)
         assert np.array_equal(result, img_list[0])
 
-    async def test_with_multiple_valid_images(self):
+    async def test_with_multiple_valid_images(self) -> None:
         img1 = np.zeros([1080, 1080, 4], np.uint8)
         img2 = np.ones([1080, 1080, 4], np.uint8)
         img_list = [img1, img2]
@@ -100,7 +100,9 @@ class TestRequestImg:
             img = await request_img(client, img_url, size)
             assert img.height() == 100 and img.width() == 100
 
-    async def test_request_img_with_exception(self, client, img_url):
+    async def test_request_img_with_exception(
+        self, client: httpx.AsyncClient, img_url: str
+    ) -> None:
         async with respx.mock(base_url=img_url) as mock:
             mock.get(img_url).mock(side_effect=httpx.ConnectError("Connection error"))
 

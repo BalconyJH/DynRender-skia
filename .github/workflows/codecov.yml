@@ -8,10 +8,12 @@ on:
     paths:
       - "dynrender/**/*"
       - "tests/**/*"
+      - ".github/workflows/codecov.yml"
   pull_request:
     paths:
       - "dynrender/**/*"
       - "tests/**/*"
+      - ".github/workflows/codecov.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

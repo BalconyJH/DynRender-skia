@@ -3,56 +3,44 @@ name: Code Coverage
 on:
   push:
     branches:
-      - master
+      - "main"
+      - "master"
+    paths:
+      - "dynrender/**/*"
+      - "tests/**/*"
   pull_request:
     paths:
-      - ".venv/**"
-      - "envs/**"
-      - "dynrender/**"
-      - "packages/**"
-      - "tests/**"
-      - ".github/actions/setup-python/**"
-      - ".github/workflows/codecov.yml"
-      - "pyproject.toml"
-      - "pdm.lock"
+      - "dynrender/**/*"
+      - "tests/**/*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    name: Test Coverage
+    name: Test
     runs-on: ${{ matrix.os }}
-    concurrency:
-      group: tests-coverage-${{ github.ref }}-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.env }}
-      cancel-in-progress: true
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     env:
       OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      PYDANTIC_VERSION: ${{ matrix.env }}
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python environment
-        uses: ./.github/actions/setup-python
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: pdm-project/setup-pdm@v3
         with:
           python-version: ${{ matrix.python-version }}
-          env-dir: ./envs/${{ matrix.env }}
-          no-root: true
-
-      - name: Run Pytest
-        run: |
-          cd ./envs/${{ matrix.env }}
-          poetry run bash "../../scripts/run-tests.sh"
-
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+      - name: Install dependencies
+        run: pdm install
+      - name: Run tests
+        run: pdm run pytest -n auto --cov=dynrender --cov-report xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
         with:
-          env_vars: OS,PYTHON_VERSION,PYDANTIC_VERSION
-          files: ./tests/coverage.xml
-          flags: unittests
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}

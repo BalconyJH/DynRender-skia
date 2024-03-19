@@ -131,10 +131,9 @@ class TestGetPictures:
             img_content = img_path.read_bytes()
             mock.get(img_url).respond(content=img_content, status_code=200)
 
-            img_array = (await get_pictures(img_url, None)).toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
-            result = mock_skia_image.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
-
-            assert np.allclose(img_array, result)
+            img_array = (await get_pictures(img_url, None)).tobytes()
+            result = mock_skia_image.tobytes()
+            assert img_array == result
 
     async def test_get_pictures_with_multiple_urls(self, img_url: str, img_path: pathlib.Path) -> None:
         async with respx.mock(base_url=img_url) as mock:

@@ -2,7 +2,7 @@
 # @Author  : Polyisoprene
 # @File    : DynTools.py
 import asyncio
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import emoji
 import httpx
@@ -14,7 +14,9 @@ from numpy import ndarray
 from .DynStyle import PolyStyle
 
 
-async def get_pictures(url: Union[str, list], size: Optional[tuple] = None) -> Union[skia.Image, tuple[skia.Image]]:
+async def get_pictures(
+    url: Union[str, List[str]], size: Optional[Tuple[int, int]] = None
+) -> Union[skia.Image, Tuple[skia.Image, ...]]:
     async with httpx.AsyncClient() as client:
         if isinstance(url, list):
             return await asyncio.gather(*[request_img(client, i, size) for i in url])

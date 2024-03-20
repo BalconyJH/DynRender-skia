@@ -26,7 +26,7 @@ class TestMergePictures:
         expected = np.vstack((img1, img2))
         assert np.array_equal(result, expected)
 
-    async def test_with_some_invalid_images(self):
+    async def test_with_some_invalid_images(self) -> None:
         img1 = np.zeros([1080, 1920, 4], np.uint8)
         img2 = None
         img_list = [img1, img2]
@@ -34,13 +34,13 @@ class TestMergePictures:
             await merge_pictures(img_list)
         assert "The width of the image must be 1080" in str(exc_info.value)
 
-    async def test_with_all_invalid_images(self):
+    async def test_with_all_invalid_images(self) -> None:
         img_list = [None, None]
-        result = await merge_pictures(img_list)
+        result = await merge_pictures(img_list)  # type: ignore
         expected = np.zeros([0, 1080, 4], np.uint8)
         assert np.array_equal(result, expected)
 
-    async def test_with_empty_list(self):
+    async def test_with_empty_list(self) -> None:
         img_list = []
         result = await merge_pictures(img_list)
         expected = np.zeros([0, 1080, 4], np.uint8)
@@ -48,7 +48,7 @@ class TestMergePictures:
 
 
 @pytest.mark.asyncio
-async def test_request_img_with_respx(resource_dir):
+async def test_request_img_with_respx(resource_dir: pathlib.Path) -> None:
     with respx.mock() as mock:
         url = "http://bilibili.com"
 
@@ -67,7 +67,7 @@ async def test_request_img_with_respx(resource_dir):
 
 
 @pytest.mark.asyncio
-async def test_request_img_with_respx_invalid_url():
+async def test_request_img_with_respx_invalid_url() -> None:
     with respx.mock() as mock:
         url = "http://bilibili.com"
 
@@ -85,20 +85,14 @@ class TestRequestImg:
         async with httpx.AsyncClient() as client_instance:
             yield client_instance
 
-    @pytest.fixture
-    def img_url(self):
-        return "http://bilibili.com"
-
-    @pytest.fixture
-    def img_path(self, resource_dir):
-        return Path(resource_dir / "bilibili.png")
-
-    async def test_request_img_success(self, client, img_url, img_path):
+    async def test_request_img_success(
+        self, client: httpx.AsyncClient, mock_img_url: str, img_path: pathlib.Path
+    ) -> None:
         async with respx.mock() as mock:
             img_content = img_path.read_bytes()
-            mock.get(img_url).respond(content=img_content, status_code=200)
+            mock.get(mock_img_url).respond(content=img_content, status_code=200)
             size = (100, 100)
-            img = await request_img(client, img_url, size)
+            img = await request_img(client, mock_img_url, size)
             assert img.height() == 100
             assert img.width() == 100
 
@@ -113,33 +107,25 @@ class TestRequestImg:
 @pytest.mark.asyncio
 class TestGetPictures:
     @pytest.fixture
-    def img_url(self):
-        return "http://bilibili.com"
-
-    @pytest.fixture
-    def img_path(self, resource_dir):
-        return Path(resource_dir / "bilibili.png")
-
-    @pytest.fixture
     def mock_skia_image(self, img_path):
-        return skia.Image.MakeFromEncoded(encoded=img_path.read_bytes())
+        return skia.Image.MakeFromEncoded(encoded=img_path.read_bytes())  # type: ignore
 
     async def test_get_pictures_with_single_url(
-        self, img_url: str, img_path: pathlib.Path, mock_skia_image: skia.Image
+        self, mock_img_url: str, img_path: pathlib.Path, mock_skia_image: skia.Image
     ) -> None:
-        async with respx.mock(base_url=img_url) as mock:
+        async with respx.mock(base_url=mock_img_url) as mock:
             img_content = img_path.read_bytes()
-            mock.get(img_url).respond(content=img_content, status_code=200)
+            mock.get(mock_img_url).respond(content=img_content, status_code=200)
 
-            img_array = (await get_pictures(img_url, None)).tobytes()
+            img_array = (await get_pictures(mock_img_url, None)).tobytes()
             result = mock_skia_image.tobytes()
             assert img_array == result
 
-    async def test_get_pictures_with_multiple_urls(self, img_url: str, img_path: pathlib.Path) -> None:
-        async with respx.mock(base_url=img_url) as mock:
+    async def test_get_pictures_with_multiple_urls(self, mock_img_url: str, img_path: pathlib.Path) -> None:
+        async with respx.mock(base_url=mock_img_url) as mock:
             img_content = img_path.read_bytes()
-            mock.get(img_url).respond(content=img_content, status_code=200)
+            mock.get(mock_img_url).respond(content=img_content, status_code=200)
 
-            img_list = await get_pictures([img_url, img_url], None)
+            img_list = await get_pictures([mock_img_url, mock_img_url], None)
             assert len(img_list) == 2
             assert all(img is not None for img in img_list)

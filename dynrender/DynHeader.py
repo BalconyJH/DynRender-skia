@@ -96,7 +96,8 @@ class BiliHeader:
             return img
         return None
 
-    async def circle_face(self, img, size):
+    @staticmethod
+    async def circle_face(img: skia.Image, size: int) -> object:
         surface = skia.Surface(img.dimensions().width(), img.dimensions().height())
         mask = surface.getCanvas()
         paint = skia.Paint(
@@ -121,9 +122,11 @@ class BiliHeader:
         canvas = skia.Canvas(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
         canvas.drawCircle(radius, radius, radius - 2, paint)
         return skia.Image.fromarray(
-            canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            array=canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,
-        ).resize(size, size)
+        ).resize(
+            size, size
+        )  # type: ignore
 
     async def draw_pub_time(self):
         if self.message.pub_ts:

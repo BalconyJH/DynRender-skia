@@ -2,7 +2,7 @@
 # @Author  : Polyisoprene
 # @File    : DynTools.py
 import asyncio
-from typing import List, Optional, Union, Tuple
+from typing import List, Optional, Union, Tuple, Dict
 
 import emoji
 import httpx
@@ -24,18 +24,34 @@ async def get_pictures(
             return await request_img(client, url, size)
 
 
-async def request_img(client, url, size) -> Optional[skia.Image]:
+async def request_img(client: httpx.AsyncClient, url: str, size: Optional[Tuple[int, int]]) -> Optional[skia.Image]:
+    """
+    Request image from url and return skia.Image
+
+    Args:
+        client: httpx.AsyncClient
+        url: str
+        size: Optional[Tuple[int, int]]
+
+    Returns:
+        Optional[skia.Image]: skia.Image
+    """
     try:
         resp = await client.get(url)
-        assert resp.status_code == 200
-        img = skia.Image.MakeFromEncoded(resp.content)
-        if size is not None and img is not None:
-            return img.resize(*size)
-        return img
-
-    except:  # noqa: E722
-        logger.exception("e")
-        return None
+        if resp.status_code != 200:
+            raise httpx.HTTPStatusError(
+                f"Request failed with status code {resp.status_code}", request=resp.request, response=resp
+            )
+        img = skia.Image.MakeFromEncoded(encoded=resp.content)  # type: ignore
+        if img is None:
+            logger.error("Failed to decode image")
+            return None
+        return img.resize(*size) if size is not None else img
+    except (httpx.RequestError, httpx.HTTPStatusError) as e:
+        logger.exception(f"Request or HTTP error occurred: {e}")
+    except Exception as e:
+        logger.exception(f"Unexpected error: {e}")
+    return None
 
 
 async def merge_pictures(img_list: List[ndarray]) -> ndarray:
@@ -43,12 +59,11 @@ async def merge_pictures(img_list: List[ndarray]) -> ndarray:
     if len(img_list) == 1 and img_list[0] is not None:
         return img_list[0]
     for img in img_list:
-        if img is not None:
-            if img.shape[1] != 1080:
-                raise ValueError("The width of the image must be 1080")
-            img_top = np.vstack((img_top, img))
-        else:
+        if img is None:
             continue
+        if img.shape[1] != 1080:
+            raise ValueError("The width of the image must be 1080")
+        img_top = np.vstack((img_top, img))
     return img_top
 
 
@@ -118,7 +133,8 @@ class DrawText:
                     break
                 x = pos[0]
 
-    async def get_emoji_text(self, text):
+    @staticmethod
+    async def get_emoji_text(text: str) -> Dict[int, List[Union[int, str]]]:
         result = emoji.emoji_list(text)
         temp = {}
         for i in result:

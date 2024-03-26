@@ -7,6 +7,7 @@
 """
 
 import asyncio
+from typing import Optional
 
 from dynamicadaptor.Message import RenderMessage
 
@@ -17,13 +18,12 @@ from .DynMajor import BiliMajor
 from .DynRepost import BiliRepost
 from .DynText import BiliText
 from .DynTools import merge_pictures
-from typing import Optional
 
 
 class DynRender:
     def __init__(
         self,
-        font_family: str = "Noto Sans CJK SC",
+        font_family: str = "Noto Sans SC",
         emoji_font_family: str = "Noto Color Emoji",
         font_style: str = "Normal",
         static_path: Optional[str] = None,
@@ -33,7 +33,7 @@ class DynRender:
         Args:
             font_family (str, optional): font family name like "Noto Sans CJK SC". Defaults to "Noto Sans CJK SC".
             emoji_font_family (str, optional):emoji font family name like "Noto Color Emoji".
-                                              Defaults to "Noto Sans CJK SC".
+            Defaults to "Noto Sans CJK SC".
             font_style (str, optional): font style like "Normal、Bold、Italic、BoldItalic". Defaults to "Normal".
             static_path (str, optional): static file path,must be absolute path. Defaults to None.
         """

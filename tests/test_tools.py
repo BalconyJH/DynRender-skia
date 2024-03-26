@@ -107,7 +107,7 @@ class TestRequestImg:
 @pytest.mark.asyncio
 class TestGetPictures:
     @pytest.fixture
-    def mock_skia_image(self, img_path):
+    def mock_skia_image(self, img_path: Path):
         return skia.Image.MakeFromEncoded(encoded=img_path.read_bytes())  # type: ignore
 
     async def test_get_pictures_with_single_url(

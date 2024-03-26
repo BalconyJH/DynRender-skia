@@ -21,6 +21,20 @@ from loguru import logger
 from .DynStyle import PolyStyle
 from .DynText import BiliText
 from .DynTools import paste, get_pictures, merge_pictures
+from dynamicadaptor.Content import RichTextDetail
+
+
+def convert_to_rich_text_detail(rich_text_node) -> RichTextDetail:
+    emoji_dict = None
+    if rich_text_node.emoji is not None:
+        emoji_dict = rich_text_node.emoji.dict()
+
+    return RichTextDetail(
+        type=rich_text_node.type,
+        text=rich_text_node.text,
+        orig_text=rich_text_node.orig_text,
+        emoji=emoji_dict,
+    )
 
 
 class AbstractMajor(ABC):
@@ -387,7 +401,9 @@ class DynMajorOpus(AbstractMajor):
                 dyn_text = Text(
                     text=self.major.opus.summary.text,
                     topic=None,
-                    rich_text_nodes=self.major.opus.summary.rich_text_nodes,
+                    rich_text_nodes=[
+                        convert_to_rich_text_detail(node) for node in self.major.opus.summary.rich_text_nodes
+                    ],
                 )
                 text_img = await BiliText(path.dirname(self.src_path), self.style).run(dyn_text, repost)
                 pics.append(text_img)

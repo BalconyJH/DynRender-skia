@@ -14,27 +14,14 @@ from typing import Optional
 import emoji
 import numpy as np
 import skia
+from dynamicadaptor.Content import RichTextDetail
 from dynamicadaptor.Content import Text
-from dynamicadaptor.Majors import Major
+from dynamicadaptor.Majors import Major, RichTextNodes
 from loguru import logger
 
 from .DynStyle import PolyStyle
 from .DynText import BiliText
 from .DynTools import paste, get_pictures, merge_pictures
-from dynamicadaptor.Content import RichTextDetail
-
-
-def convert_to_rich_text_detail(rich_text_node) -> RichTextDetail:
-    emoji_dict = None
-    if rich_text_node.emoji is not None:
-        emoji_dict = rich_text_node.emoji.dict()
-
-    return RichTextDetail(
-        type=rich_text_node.type,
-        text=rich_text_node.text,
-        orig_text=rich_text_node.orig_text,
-        emoji=emoji_dict,
-    )
 
 
 class AbstractMajor(ABC):
@@ -387,6 +374,21 @@ class DynMajorLiveRcmd(AbstractMajor):
 
 
 class DynMajorOpus(AbstractMajor):
+    @staticmethod
+    def _convert_to_rich_text_detail(rich_text_node: RichTextNodes) -> RichTextDetail:
+        """
+        Magic method to convert rich_text_node to RichTextDetail.
+        Simplifies the process by directly integrating condition into assignment.
+        :param rich_text_node: RichTextNodes
+        :return: RichTextDetail
+        """
+        return RichTextDetail(
+            type=rich_text_node.type,
+            text=rich_text_node.text,
+            orig_text=rich_text_node.orig_text,
+            emoji=rich_text_node.emoji.dict() if rich_text_node.type == "RICH_TEXT_NODE_TYPE_EMOJI" else None,
+        )
+
     async def run(self, repost) -> Optional[np.ndarray]:
         pics = []
         try:
@@ -402,7 +404,7 @@ class DynMajorOpus(AbstractMajor):
                     text=self.major.opus.summary.text,
                     topic=None,
                     rich_text_nodes=[
-                        convert_to_rich_text_detail(node) for node in self.major.opus.summary.rich_text_nodes
+                        self._convert_to_rich_text_detail(node) for node in self.major.opus.summary.rich_text_nodes
                     ],
                 )
                 text_img = await BiliText(path.dirname(self.src_path), self.style).run(dyn_text, repost)

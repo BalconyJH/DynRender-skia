@@ -6,12 +6,12 @@ on:
       - "main"
       - "master"
     paths:
-      - "dynrender/**/*"
+      - "dynrender_skia/**/*"
       - "tests/**/*"
       - ".github/workflows/codecov.yml"
   pull_request:
     paths:
-      - "dynrender/**/*"
+      - "dynrender_skia/**/*"
       - "tests/**/*"
       - ".github/workflows/codecov.yml"
 
@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: pdm install
       - name: Run tests
-        run: pdm run pytest -n auto --cov=dynrender --cov-report xml
+        run: pdm run pytest -n auto --cov=dynrender_skia --cov-report xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

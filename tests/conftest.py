@@ -6,7 +6,7 @@ import pytest
 from _pytest.tmpdir import TempPathFactory
 from loguru import logger
 
-from dynrender.Core import DynRender
+from dynrender_skia.Core import DynRender
 
 
 @pytest.fixture(scope="session")

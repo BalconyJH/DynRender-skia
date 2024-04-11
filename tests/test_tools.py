@@ -8,7 +8,7 @@ import pytest_asyncio
 import respx
 import skia
 
-from dynrender.DynTools import merge_pictures, request_img, get_pictures
+from dynrender_skia.DynTools import merge_pictures, request_img, get_pictures
 
 
 @pytest.mark.asyncio

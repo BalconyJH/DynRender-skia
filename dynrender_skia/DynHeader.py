@@ -21,7 +21,7 @@ class BiliHeader:
         self.src_path = path.join(static_path, "Src")
         self.style = style
         self.canvas = None
-        self.message = None
+        self.message: Optional[Head] = None
 
     async def run(self, header_message: Head) -> Optional[np.ndarray]:
         try:
@@ -55,11 +55,14 @@ class BiliHeader:
             await self.paste(pendant, (10, 210))
 
     async def paste_vip(self):
+        if not self.message:
+            return
         if self.message.official_verify and self.message.official_verify.type != -1:
-            if self.message.official_verify.type == 0:
-                img_path = path.join(self.src_path, "official_yellow.png")
-            else:
-                img_path = path.join(self.src_path, "official_blue.png")
+            img_path = (
+                path.join(self.src_path, "official_yellow.png")
+                if self.message.official_verify.type == 0
+                else path.join(self.src_path, "official_blue.png")
+            )
             img = skia.Image.open(img_path).resize(45, 45)
             await self.paste(img, (120, 330))
         elif self.message.vip and self.message.vip.status == 1:
@@ -77,6 +80,8 @@ class BiliHeader:
             await self.paste(face, (45, 245))
 
     async def get_face_and_pendant(self, img_type: bool = False):
+        if not self.message:
+            return
         if img_type:
             img_name = f"{self.message.mid}.webp"
             img_url = f"{self.message.face}@240w_240h_1c_1s.webp"
@@ -87,10 +92,9 @@ class BiliHeader:
             img_path = path.join(self.pendant_path, img_name)
         else:
             return None
-        if path.exists(img_path):
-            if time() - int(path.getmtime(img_path)) <= 43200:
-                return skia.Image.open(img_path)
-        img = await get_pictures(img_url)
+        if path.exists(img_path) and time() - int(path.getmtime(img_path)) <= 43200:
+            return skia.Image.open(img_path)
+        img: skia.Image = await get_pictures(img_url)
         if img is not None:
             img.save(img_path)
             return img
@@ -124,11 +128,11 @@ class BiliHeader:
         return skia.Image.fromarray(
             array=canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,
-        ).resize(
-            size, size
-        )  # type: ignore
+        ).resize(size, size)  # type: ignore
 
     async def draw_pub_time(self):
+        if not self.message:
+            return
         if self.message.pub_ts:
             pub_time = strftime("%Y-%m-%d %H:%M:%S", localtime(self.message.pub_ts))
         elif self.message.pub_time:
@@ -155,6 +159,8 @@ class BiliHeader:
         await self.paste(logo, (433, 20))
 
     async def draw_name(self):
+        if not self.message:
+            return
         # 如果是大会员的话
         if self.message.vip and self.message.vip.status == 1:
             # 如果是大会员名字是粉色
@@ -175,6 +181,8 @@ class BiliHeader:
         )
 
     async def paste(self, image, position: tuple) -> None:
+        if not self.canvas:
+            return
         x, y = position
         img_height = image.dimensions().fHeight
         img_width = image.dimensions().fWidth
@@ -257,7 +265,7 @@ class RepostHeader:
         if path.exists(img_path):
             if time() - int(path.getmtime(img_path)) <= 43200:
                 return skia.Image.open(img_path)
-        img = await get_pictures(img_url)
+        img: skia.Image = await get_pictures(img_url)
         if img is not None:
             img.save(img_path)
         return img

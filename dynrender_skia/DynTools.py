@@ -2,6 +2,8 @@
 # @Author  : Polyisoprene
 # @File    : DynTools.py
 import asyncio
+import platform
+import sys
 from typing import List, Optional, Union, Tuple, Dict
 
 import emoji
@@ -12,6 +14,33 @@ from loguru import logger
 from numpy import ndarray
 
 from .DynStyle import PolyStyle
+
+
+def get_sys_info():
+    system_info = {
+        "System Type": platform.system(),
+        "Bitness": platform.architecture()[0],
+        "Python Version": sys.version.split()[0],
+        "Architecture": platform.machine(),
+    }
+
+    try:
+        import skia
+
+        system_info["Skia-Python Version"] = skia.__version__
+    except ImportError as e:
+        logger.exception(e)
+        logger.warning(
+            "Missing dependent files \n\n please install dependence: \n\n ---------------------------------------\n\n "
+            "Ubuntu: apt install libgl1-mesa-glx \n\n ArchLinux: pacman -S libgl \n\n Centos: yum install mesa-libGL -y "
+            "\n\n---------------------------------------"
+        )
+        system_info["Skia-Python Version"] = ""
+    except Exception as e:
+        logger.exception(e)
+        system_info["Skia-Python Version"] = ""
+
+    return system_info
 
 
 async def get_pictures(

@@ -9,7 +9,7 @@ from dynamicadaptor.AddonCard import Additional
 from loguru import logger
 
 from .DynConfig import PolyStyle
-from .DynTools import DrawText, get_pictures, paste
+from .DynTools import DrawText, get_pictures, paste, draw_shadow
 
 
 class AbstractAdditional(ABC):
@@ -111,7 +111,7 @@ class DynAddReserve(AbstractAdditional):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 185), 15, background_color)
+            await draw_shadow(self.canvas, (35, 20, 1010, 185), 15, background_color)
             await self.make_desc()
             await self.make_badge("预约", self.style.font.font_size.text, (850, 75), (170, 75), (45, 50))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
@@ -174,7 +174,7 @@ class DynAddUpOwerLottery(AbstractAdditional):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 185), 15, background_color)
+            await draw_shadow(self.canvas, (35, 20, 1010, 185), 15, background_color)
             await self.make_desc()
             await self.make_badge("去看看", self.style.font.font_size.time, (860, 75), (155, 75), (25, 50))
             return self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
@@ -210,7 +210,7 @@ class DynAddGoods(AbstractAdditional):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 50, 1010, 240), 15, background_color)
+            await draw_shadow(self.canvas, (35, 50, 1010, 240), 15, background_color)
             await self.make_cover()
             await self.make_title_desc()
             await DrawText(self.style).draw_text(
@@ -276,7 +276,7 @@ class DynAddUgc(AbstractAdditional):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
+            await draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 240)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.make_cover()
@@ -335,7 +335,7 @@ class DynAddVote(AbstractAdditional):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
+            await draw_shadow(self.canvas, (35, 20, 1010, 240), 15, background_color)
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 240)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.make_cover()
@@ -381,7 +381,7 @@ class DynAddCommon(AbstractAdditional):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 80, 1010, 245), 15, background_color)
+            await draw_shadow(self.canvas, (35, 80, 1010, 245), 15, background_color)
 
             await DrawText(self.style).draw_text(
                 self.canvas,

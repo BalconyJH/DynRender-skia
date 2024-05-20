@@ -296,16 +296,3 @@ class Footer:
         except Exception as e:
             logger.exception(e)
             return None
-
-    async def draw_shadow(self, canvas, pos: tuple, corner: int, bg_color):
-        x, y, width, height = pos
-        rec = skia.Rect.MakeXYWH(x, y, width, height)
-        paint = skia.Paint(
-            Color=skia.Color(*bg_color),
-            AntiAlias=True,
-            ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120)),
-        )
-        if corner != 0:
-            canvas.drawRoundRect(rec, corner, corner, paint)
-        else:
-            canvas.drawRect(rec, paint)

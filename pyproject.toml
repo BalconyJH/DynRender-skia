@@ -7,13 +7,14 @@ authors = [
     { name = "BalconyJH", email = "balconyjh@gmail.com" },
 ]
 dependencies = [
-    "skia-python<120.0,>=87.5",
+    "skia-python==126.0b8",
     "httpx<1.0.0,>=0.24.1",
     "emoji<3.0.0,>=2.6.0",
     "dynamicadaptor<1.0.0,>=0.4.9",
     "aiofiles~=23.2",
+    "numpy==1.26.4",
 ]
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.9,<4.0"
 readme = "README.md"
 license = { text = "GNU GPLv3" }
 

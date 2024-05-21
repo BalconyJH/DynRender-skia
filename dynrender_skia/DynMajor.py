@@ -121,18 +121,26 @@ class AbstractMajor(ABC):
     async def make_round_cornor(self, img, corner: int):
         surface = skia.Surface(img.width(), img.height())
         mask = surface.getCanvas()
-        paint = skia.Paint(
-            Style=skia.Paint.kFill_Style,
-            Color=skia.Color(255, 255, 255, 255),
-            AntiAlias=True,
+        mask.clear(skia.Color(255, 255, 255, 0))
+        mask.clipRRect(skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), corner,corner), skia.ClipOp.kIntersect)
+        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0,img.dimensions().width(), img.dimensions().height()), skia.Rect.MakeXYWH(0,0,img.dimensions().width(), img.dimensions().height()))
+        # paint = skia.Paint(
+        #     Style=skia.Paint.kFill_Style,
+        #     Color=skia.Color(255, 255, 255, 255),
+        #     AntiAlias=True,
+        # )
+        # rect = skia.Rect.MakeXYWH(0, 0, img.width(), img.height())
+        # mask.drawRoundRect(rect, corner, corner, paint)
+        # image_array = np.bitwise_and(
+        #     img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+        #     mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+        # )
+        # img = skia.Image.fromarray(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
+        # img.save("1.png")
+        return skia.Image.fromarray(
+            array=mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            colorType=skia.ColorType.kRGBA_8888_ColorType,
         )
-        rect = skia.Rect.MakeXYWH(0, 0, img.width(), img.height())
-        mask.drawRoundRect(rect, corner, corner, paint)
-        image_array = np.bitwise_and(
-            img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-            mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-        )
-        return skia.Image.fromarray(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
 
     async def make_tag(self, tag: str, font_size: int):
         self.text_font.setSize(font_size)

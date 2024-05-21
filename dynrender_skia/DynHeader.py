@@ -104,31 +104,34 @@ class BiliHeader:
     async def circle_face(img: skia.Image, size: int) -> object:
         surface = skia.Surface(img.dimensions().width(), img.dimensions().height())
         mask = surface.getCanvas()
-        paint = skia.Paint(
-            Style=skia.Paint.kFill_Style,
-            Color=skia.Color(255, 255, 255, 255),
-            AntiAlias=True,
-        )
+        mask.clear(skia.Color(255, 255, 255, 255))
+        # paint = skia.Paint(
+        #     Style=skia.Paint.kFill_Style,
+        #     Color=skia.Color(255, 255, 255, 255),
+        #     AntiAlias=True,
+        # )
         radius = int(img.dimensions().width() / 2)
-        mask.drawCircle(radius, radius, radius, paint)
-
+        mask.clipRRect(skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), radius,radius), skia.ClipOp.kIntersect)
+        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0,img.dimensions().width(), img.dimensions().height()), skia.Rect.MakeXYWH(0,0,img.dimensions().width(), img.dimensions().height()))
+        # mask.drawCircle(radius, radius, radius, paint)
         paint = skia.Paint(
             Style=skia.Paint.kStroke_Style,
-            StrokeWidth=5,
+            StrokeWidth=6,
             Color=skia.Color(251, 114, 153, 255),
             AntiAlias=True,
         )
-
-        image_array = np.bitwise_and(
-            img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-            mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-        )
-        canvas = skia.Canvas(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
-        canvas.drawCircle(radius, radius, radius - 2, paint)
+        # image_array = np.bitwise_and(
+        #     img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+        #     mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+        # )
+        # canvas = skia.Canvas(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
+        mask.drawCircle(radius, radius, radius-3, paint)
         return skia.Image.fromarray(
-            array=canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            array=mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,
-        ).resize(size, size)  # type: ignore
+        ).resize(
+            size, size
+        )  # type: ignore
 
     async def draw_pub_time(self):
         if not self.message:
@@ -232,29 +235,32 @@ class RepostHeader:
     async def circle_face(self, img, size):
         surface = skia.Surface(img.dimensions().width(), img.dimensions().height())
         mask = surface.getCanvas()
-        paint = skia.Paint(
-            Style=skia.Paint.kFill_Style,
-            Color=skia.Color(255, 255, 255, 255),
-            AntiAlias=True,
-        )
+        mask.clear(skia.Color(*self.style.color.background.repost))
+        # paint = skia.Paint(
+        #     Style=skia.Paint.kFill_Style,
+        #     Color=skia.Color(255, 255, 255, 255),
+        #     AntiAlias=True,
+        # )
         radius = int(img.dimensions().width() / 2)
-        mask.drawCircle(radius, radius, radius, paint)
+        mask.clipRRect(skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), radius,radius), skia.ClipOp.kIntersect)
+        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0,img.dimensions().width(), img.dimensions().height()), skia.Rect.MakeXYWH(0,0,img.dimensions().width(), img.dimensions().height()))
+        # mask.drawCircle(radius, radius, radius, paint)
 
         paint = skia.Paint(
             Style=skia.Paint.kStroke_Style,
-            StrokeWidth=5,
+            StrokeWidth=6,
             Color=skia.Color(251, 114, 153, 255),
             AntiAlias=True,
         )
 
-        image_array = np.bitwise_and(
-            img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-            mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
-        )
-        canvas = skia.Canvas(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
-        canvas.drawCircle(radius, radius, radius - 2, paint)
+        # image_array = np.bitwise_and(
+        #     img.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+        #     mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+        # )
+        # canvas = skia.Canvas(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
+        mask.drawCircle(radius, radius, radius - 3, paint)
         return skia.Image.fromarray(
-            canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,
         ).resize(size, size)
 

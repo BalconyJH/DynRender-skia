@@ -99,14 +99,14 @@ class DrawText:
         emoji_info = await self.get_emoji_text(text)
         total = len(text) - 1
         x, y, x_bound, y_bound, y_int = pos
-        offset = 0
+        offset:int= 0
         while offset <= total:
             j = text[offset]
             if j == "\n":
                 break
             if offset in emoji_info.keys():
                 j = emoji_info[offset][1]
-                offset = emoji_info[offset][0]
+                offset = emoji_info[offset][0] # type: ignore
                 font = self.emoji_font
             else:
                 offset += 1

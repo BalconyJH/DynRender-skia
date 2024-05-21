@@ -66,7 +66,7 @@ class BiliText:
             elif i.type != "RICH_TEXT_NODE_TYPE_TEXT":
                 rich_list.append(i)
         result = await asyncio.gather(self.get_emoji(emoji_list, emoji_name_list), self.get_rich_pic(rich_list))
-        await self.draw_text(result[1], dyn_text)
+        await self.draw_text(result[1], dyn_text) # type: ignore
         if self.offset != 40:
             self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
 
@@ -161,7 +161,7 @@ class BiliText:
 
     async def draw_text(self, rich_list: list, dyn_text: Text):
         self.canvas.clear(skia.Color(*self.bg_color))
-        for i in dyn_text.rich_text_nodes:
+        for i in dyn_text.rich_text_nodes: # type: ignore
             if i.type in {
                 "RICH_TEXT_NODE_TYPE_AT",
                 "RICH_TEXT_NODE_TYPE_TEXT",
@@ -179,6 +179,7 @@ class BiliText:
 
     async def draw_plain_text(self, dyn_detail, color):
         font = None
+        e=False
         dyn_detail = dyn_detail.translate(str.maketrans({"\r": ""}))
         paint = skia.Paint(AntiAlias=True, Color=color)
         emoji_info = await self.get_emoji_text(dyn_detail)
@@ -198,9 +199,11 @@ class BiliText:
                 j = emoji_info[offset][1]
                 offset = emoji_info[offset][0]
                 font = self.emoji_font
+                e=True
             else:
                 offset += 1
                 font = self.text_font
+                e=False
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
@@ -211,9 +214,14 @@ class BiliText:
                     font = skia.Font(typeface, self.style.font.font_size.text)
                 else:
                     font = self.text_font
-            measure = font.measureText(j)
-            blob = skia.TextBlob(j, font)
-            self.canvas.drawTextBlob(blob, self.offset, 50, paint)
+            if not e:
+                measure = font.measureText(j)
+                blob = skia.TextBlob(j, font)
+                self.canvas.drawTextBlob(blob, self.offset, 50, paint)
+            else:
+                measure = font.measureText(j[0])
+                blob = skia.TextBlob.MakeFromShapedText(j, font)
+                self.canvas.drawTextBlob(blob, self.offset, 5, paint)
             self.offset += measure
             if self.offset > self.x_bound:
                 self.offset = 40

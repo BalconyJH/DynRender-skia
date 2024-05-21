@@ -12,7 +12,6 @@ async def web_test():
     headers = {
         "referer": f"https://t.bilibili.com/{dyn_id}",
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-        "Cookie":"bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTY1MTE1NTIsImlhdCI6MTcxNjI1MjI5MiwicGx0IjotMX0.xfGmslpL6zp9YFu84e09vnL8XfG8LolFFyMrfI6D6QY"
     }
 
     # 发起HTTP请求并解析JSON响应

@@ -32,11 +32,20 @@ class AbstractAdditional(ABC):
         pass
 
     async def make_badge(self, badge: str, font_size: int, pos: tuple, img_size: tuple, text_pos: tuple):
-        self.text_font.setSize(font_size)
+        text_font = self.text_font
+        if text_font.textToGlyphs(badge[0])[0]==0:
+            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(badge[0]),
+                ):
+                text_font = skia.Font(typeface, self.style.font.font_size.text)
+        text_font.setSize(font_size)
         surface = skia.Surface(*img_size)
         canvas = surface.getCanvas()
         canvas.clear(skia.Color(*self.style.color.font_color.name_big_vip))
-        blob = skia.TextBlob(badge, self.text_font)
+        blob = skia.TextBlob(badge, text_font)
         paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
         canvas.drawTextBlob(blob, text_pos[0], text_pos[1], paint)
         tag_img = skia.Image.fromarray(

@@ -135,14 +135,23 @@ class AbstractMajor(ABC):
         return skia.Image.fromarray(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
 
     async def make_tag(self, tag: str, font_size: int):
-        self.text_font.setSize(font_size)
-        size = self.text_font.measureText(tag)
-        surface = skia.Surface(int(size + 20), int(self.text_font.getSize() + 20))
+        text_font = self.text_font
+        if text_font.textToGlyphs(tag[0])[0]==0:
+            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(tag[0]),
+                ):
+                text_font = skia.Font(typeface, self.style.font.font_size.text)
+        text_font.setSize(font_size)
+        size = text_font.measureText(tag)
+        surface = skia.Surface(int(size + 20), int(text_font.getSize() + 20))
         canvas = surface.getCanvas()
         canvas.clear(skia.Color(*self.style.color.font_color.name_big_vip))
-        blob = skia.TextBlob(tag, self.text_font)
+        blob = skia.TextBlob(tag, text_font)
         paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
-        canvas.drawTextBlob(blob, 10, int(self.text_font.getSize() + 5), paint)
+        canvas.drawTextBlob(blob, 10, int(text_font.getSize() + 5), paint)
         tag_img = skia.Image.fromarray(
             canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,
@@ -151,14 +160,23 @@ class AbstractMajor(ABC):
         await paste(self.canvas, tag_img, (1010 - tag_img.width(), 50))
 
     async def make_sub_tag(self, sub_tag: str, font_size: int):
-        self.text_font.setSize(font_size)
-        size = self.text_font.measureText(sub_tag)
-        surface = skia.Surface(int(size + 20), int(self.text_font.getSize() + 20))
+        text_font = self.text_font
+        if text_font.textToGlyphs(sub_tag[0])[0]==0:
+            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                    self.style.font.font_family,
+                    self.style.font.font_style,
+                    ["zh", "en"],
+                    ord(sub_tag[0]),
+                ):
+                text_font = skia.Font(typeface, self.style.font.font_size.text)
+        text_font.setSize(font_size)
+        size = text_font.measureText(sub_tag)
+        surface = skia.Surface(int(size + 20), int(text_font.getSize() + 20))
         canvas = surface.getCanvas()
         canvas.clear(skia.Color(0, 0, 0, 150))
-        blob = skia.TextBlob(sub_tag, self.text_font)
+        blob = skia.TextBlob(sub_tag, text_font)
         paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
-        canvas.drawTextBlob(blob, 10, int(self.text_font.getSize() + 5), paint)
+        canvas.drawTextBlob(blob, 10, int(text_font.getSize() + 5), paint)
         sub_title_img = skia.Image.fromarray(
             canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,

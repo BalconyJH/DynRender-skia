@@ -16,4 +16,4 @@ async def test_dyn_render_run(shared_cache, resource_dir, dynrender_instance):
     img = await dynrender_instance.run(message)
 
     img = skia.Image.fromarray(img, colorType=skia.ColorType.kRGBA_8888_ColorType)
-    img.save("1.png")
+    img.save("preview.png")

@@ -6,8 +6,6 @@ import pytest
 from _pytest.tmpdir import TempPathFactory
 from loguru import logger
 
-from dynrender_skia.Core import DynRender
-
 
 @pytest.fixture(scope="session")
 def shared_cache(tmp_path_factory: TempPathFactory) -> object:
@@ -21,13 +19,6 @@ def shared_cache(tmp_path_factory: TempPathFactory) -> object:
 @pytest.fixture(scope="session")
 def resource_dir() -> pathlib.Path:
     return Path(__file__).parent / "res"
-
-
-@pytest.fixture(scope="session")
-def dynrender_instance(shared_cache: pathlib.Path) -> DynRender:
-    dynrender_instance = DynRender(static_path=str(shared_cache))
-    logger.info("DynRender实例创建成功")
-    return dynrender_instance
 
 
 @pytest.fixture(scope="module")

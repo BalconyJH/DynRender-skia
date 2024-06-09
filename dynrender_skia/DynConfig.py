@@ -8,9 +8,10 @@
 
 import json
 from os import getcwd, makedirs, path
-from typing import Optional
+from typing import Optional, Iterable, cast
 from zipfile import ZipFile
 
+import skia
 from loguru import logger
 
 from .DynStyle import PolyStyle
@@ -18,10 +19,10 @@ from .DynStyle import PolyStyle
 
 class MakeStaticFile:
     def __init__(self, data_path: Optional[str] = None) -> None:
-        self.data_path: str = data_path
+        self.data_path: Optional[str] = data_path
 
     @property
-    def check_cache_file(self) -> None:
+    def check_cache_file(self) -> str:
         """查询缓存文件是否存在"""
         # 查询是否有data_path参数
         # 没有的话静态文件目录就设置在程序的运行目录
@@ -57,15 +58,16 @@ class MakeStaticFile:
                 )
                 logger.info("static目录创建成功")
         font_cache_path = path.join(static_path, "font_family.json")
+        font_mgr = skia.FontMgr()
         if not path.exists(font_cache_path):
             logger.info("创建系统安装的所有字体的名称列表文件")
-            font_list = list(skia.FontMgr())
+            font_list = list(cast(Iterable[str], font_mgr))
             with open(font_cache_path, "w") as f:
                 f.write(json.dumps(font_list, ensure_ascii=False))
             logger.info("字体列表文件创建完成")
             logger.info(f"文件存储于：{font_cache_path}")
         else:
-            new_font_list = list(skia.FontMgr())
+            new_font_list = list(cast(Iterable[str], font_mgr))
             with open(font_cache_path, "w+") as f:
                 if file_content := f.read():
                     old_font_list = json.loads(file_content)
@@ -76,7 +78,8 @@ class MakeStaticFile:
 
         return static_path
 
-    def unzip_file(self, arg0, arg1, src_path, target_path):
+    @staticmethod
+    def unzip_file(arg0, arg1, src_path, target_path):
         logger.info(arg0)
         logger.info(arg1)
         file = ZipFile(path.join(src_path, "Static.zip"))

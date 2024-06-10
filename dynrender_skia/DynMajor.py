@@ -245,7 +245,6 @@ class DynMajorDraw:
             item_count = len(self.items)
             background_color = self.style.color.background.repost if repost else self.style.color.background.normal
             if item_count == 1:
-                transparent_background = (255, 255, 255, 0)
                 return await self.single_img(transparent_background, self.items)
             elif item_count in {2, 4}:
                 return await self.dual_img(background_color, self.items)
@@ -255,8 +254,7 @@ class DynMajorDraw:
             logger.exception("Error")
             return None
 
-    @staticmethod
-    async def single_img(background_color: tuple, items) -> np.ndarray:
+    async def single_img(self,background_color: tuple, items) -> np.ndarray:
         src = items[0].src or items[0].url
         img_height = items[0].height
         img_width = items[0].width
@@ -270,7 +268,7 @@ class DynMajorDraw:
             surface = skia.Surface(1080, img.height() + 20)
             canvas = surface.getCanvas()
             canvas.clear(skia.Color(*background_color))
-            await paste(canvas, img, (36, 10))
+            await self.paste(canvas, img, (36, 10))
         else:
             logger.warning("Image is None, render placeholder")
             surface = skia.Surface(1080, 1080)
@@ -299,7 +297,7 @@ class DynMajorDraw:
         x, y = 15, 10
         for i in imgs:
             if i is not None:
-                await paste(canvas, i, (x, y))
+                await self.paste(canvas, i, (x, y))
             x += 530
             if x > 1000:
                 x = 15
@@ -327,12 +325,23 @@ class DynMajorDraw:
         x, y = 11, 10
         for img in imgs:
             if img is not None:
-                await paste(canvas, img, (x, y))
+                await self.paste(canvas, img, (x, y))
             x += 356
             if x > 1000:
                 x = 11
                 y += 356
         return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+        
+    async def paste(self,canvas,target,position):
+        x, y = position
+        img_height = target.dimensions().fHeight
+        img_width = target.dimensions().fWidth
+        rec = skia.Rect.MakeXYWH(x, y, img_width, img_height)
+        canvas.save()
+        canvas.clipRect(rec,skia.ClipOp.kIntersect)
+        canvas.clear(skia.Color(*(255,255,255,0)))
+        canvas.drawImageRect(target, skia.Rect(0, 0, img_width, img_height), rec)
+        canvas.restore()
 
 
 class DynMajorArchive(AbstractMajor):

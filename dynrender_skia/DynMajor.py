@@ -245,7 +245,6 @@ class DynMajorDraw:
             item_count = len(self.items)
             background_color = self.style.color.background.repost if repost else self.style.color.background.normal
             if item_count == 1:
-                transparent_background = (255, 255, 255, 0)
                 return await self.single_img(transparent_background, self.items)
             elif item_count in {2, 4}:
                 return await self.dual_img(background_color, self.items)
@@ -332,7 +331,7 @@ class DynMajorDraw:
                 x = 11
                 y += 356
         return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
-    
+        
     async def paste(self,canvas,target,position):
         x, y = position
         img_height = target.dimensions().fHeight

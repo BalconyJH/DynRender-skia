@@ -67,16 +67,44 @@ async def merge_pictures(img_list: List[ndarray]) -> ndarray:
     return img_top
 
 
-async def paste(src, target, position: tuple) -> None:
+async def paste(canvas: skia.Canvas, target: skia.Image, position: tuple, clear_background: bool = False) -> None:
+    """
+    Paste the target image onto the canvas at the specified position, with an option to clear the background.
+
+    Args:
+        canvas (skia.Canvas): The canvas on which the image will be drawn.
+        target (skia.Image): The image to be pasted onto the canvas.
+        position (tuple): A tuple (x, y) specifying the position on the canvas where the top-left corner of the image will be placed.
+        clear_background (bool): If set to True, the background in the area where the image will be placed is cleared to transparent before pasting the image. Defaults to False.
+
+    Raises:
+        ValueError: If the `target` image is None.
+        AttributeError: If there is an issue accessing attributes or methods on `canvas` or `target`.
+
+    Returns:
+        None: The function does not return a value, but modifies the canvas in place.
+    """
+    if target is None:
+        raise ValueError("Target image is None.")
+
+    x, y = position
+    img_height = target.dimensions().fHeight
+    img_width = target.dimensions().fWidth
+    rec = skia.Rect.MakeXYWH(x, y, img_width, img_height)  # type: ignore
+
     try:
-        if target is not None:
-            x, y = position
-            img_height = target.dimensions().fHeight
-            img_width = target.dimensions().fWidth
-            rec = skia.Rect.MakeXYWH(x, y, img_width, img_height)
-            src.drawImageRect(target, skia.Rect(0, 0, img_width, img_height), rec)
-    except Exception as e:
-        logger.exception(e)
+        if clear_background:
+            canvas.save()
+            canvas.clipRect(rec, skia.ClipOp.kIntersect)
+            canvas.clear(skia.Color(*(255, 255, 255, 0)))
+
+        canvas.drawImageRect(target, skia.Rect(0, 0, img_width, img_height), rec)
+
+        if clear_background:
+            canvas.restore()
+
+    except (ValueError, AttributeError) as e:
+        logger.exception(f"Failed to paste image: {e!s}")
 
 
 class DrawText:
@@ -99,14 +127,14 @@ class DrawText:
         emoji_info = await self.get_emoji_text(text)
         total = len(text) - 1
         x, y, x_bound, y_bound, y_int = pos
-        offset:int= 0
+        offset: int = 0
         while offset <= total:
             j = text[offset]
             if j == "\n":
                 break
             if offset in emoji_info.keys():
                 j = emoji_info[offset][1]
-                offset = emoji_info[offset][0] # type: ignore
+                offset = emoji_info[offset][0]  # type: ignore
                 font = self.emoji_font
             else:
                 offset += 1

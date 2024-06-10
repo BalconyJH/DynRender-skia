@@ -2,7 +2,7 @@
 # @Author  : Polyisoprene
 # @File    : DynTools.py
 import asyncio
-from typing import List, Optional, Union, Tuple, Dict
+from typing import Dict, List, Optional, Tuple, Union
 
 import emoji
 import httpx
@@ -74,8 +74,10 @@ async def paste(canvas: skia.Canvas, target: skia.Image, position: tuple, clear_
     Args:
         canvas (skia.Canvas): The canvas on which the image will be drawn.
         target (skia.Image): The image to be pasted onto the canvas.
-        position (tuple): A tuple (x, y) specifying the position on the canvas where the top-left corner of the image will be placed.
-        clear_background (bool): If set to True, the background in the area where the image will be placed is cleared to transparent before pasting the image. Defaults to False.
+        position (tuple): A tuple (x, y) is the position on the canvas where the top-left corner of the image will be
+        placed.
+        clear_background (bool): If set to True, the background aera where the image will be placed is cleared to
+        transparent before pasting the image. Defaults to False.
 
     Raises:
         ValueError: If the `target` image is None.

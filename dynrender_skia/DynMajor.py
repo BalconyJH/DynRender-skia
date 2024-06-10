@@ -229,6 +229,8 @@ class BiliMajor:
 
 
 class DynMajorDraw:
+    """Dynamic picture drawing class"""
+
     def __init__(self, style: PolyStyle, items=None) -> None:
         self.style = style
         self.items = items
@@ -252,7 +254,7 @@ class DynMajorDraw:
             logger.exception("Error")
             return None
 
-    async def single_img(self, background_color: str, items) -> np.ndarray:
+    async def single_img(self, background_color: tuple, items) -> np.ndarray:
         src = items[0].src or items[0].url
         img_height = items[0].height
         img_width = items[0].width
@@ -260,16 +262,22 @@ class DynMajorDraw:
             img_url = f"{src}@{600}w_{800}h_!header.webp"
         else:
             img_url = src
-        img = await get_pictures(img_url)
+        img: skia.Image = await get_pictures(img_url)
         if img is not None:
             img = img.resize(width=1008, height=int(img.height() * 1008 / img.width()))
             surface = skia.Surface(1080, img.height() + 20)
             canvas = surface.getCanvas()
             canvas.clear(skia.Color(*background_color))
-            await paste(canvas, img, (36, 10))
-            return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+            await paste(canvas, img, (36, 10), clear_background=True)
+        else:
+            logger.warning("Image is None, render placeholder")
+            surface = skia.Surface(1080, 1080)
+            canvas = surface.getCanvas()
+            canvas.clear(skia.Color(*background_color))
 
-    async def dual_img(self, background_color: str, items):
+        return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
+
+    async def dual_img(self, background_color: tuple, items):
         url_list = []
         for item in items:
             src = item.src or item.url
@@ -289,14 +297,14 @@ class DynMajorDraw:
         x, y = 15, 10
         for i in imgs:
             if i is not None:
-                await paste(canvas, i, (x, y))
+                await paste(canvas, i, (x, y), clear_background=True)
             x += 530
             if x > 1000:
                 x = 15
                 y += 530
         return canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType)
 
-    async def triplex_img(self, background_color: str, items):
+    async def triplex_img(self, background_color: tuple, items):
         url_list = []
         for item in items:
             src = item.src or item.url
@@ -317,7 +325,7 @@ class DynMajorDraw:
         x, y = 11, 10
         for img in imgs:
             if img is not None:
-                await paste(canvas, img, (x, y))
+                await paste(canvas, img, (x, y), clear_background=True)
             x += 356
             if x > 1000:
                 x = 11

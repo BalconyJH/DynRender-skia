@@ -7,6 +7,11 @@ Linux用户在导入skia-python包时可能会遇到以下报错
 ```bash
 libGL.so.1: cannot open shared object file: No such file or directory
 ```
+Windows用户在缺少Microsoft Visual C++ Runtime时可能会遇到以下报错
+```commandline
+ImportError: DLL load failed while importing skia: The specified module could not be found.
+```
+
 ## 解决方法
 
 > ubuntu用户
@@ -24,8 +29,11 @@ pacman -S libgl
 > centos用户
 ```bash
 yum install mesa-libGL -y
-
 ```
+
+> Windows用户
+
+下载链接[Microsoft Visual C++ 2015 Redistributable Update 3 RC](microsoft.com/en-US/download/details.aspx?id=52685)
 
 # 使用方法
 
@@ -44,7 +52,7 @@ from dynrender_skia.Core import DynRender
 from dynamicadaptor.DynamicConversion import formate_message
 
 
-# 定义异步函数，用于执行Web测试
+# 现在风控升级，大概率请求失败，建议携带cookie进行请求
 async def web_test():
     dyn_id = "440646043801479846"
     url = f"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?timezone_offset=-480&id={dyn_id}&features=itemOpusStyle"
@@ -77,4 +85,11 @@ if __name__ == "__main__":
 ```
 
 ## 效果展示
-![示例图片](https://i0.hdslb.com/bfs/new_dyn/a1fae2ca072ef96bc66dc12ea6de569c37815472.png)
+<table>
+<tr>
+<th width="50%">
+<p>示例图片
+<p><img src="https://i0.hdslb.com/bfs/new_dyn/a1fae2ca072ef96bc66dc12ea6de569c37815472.png">
+</th>
+</tr>
+</table>

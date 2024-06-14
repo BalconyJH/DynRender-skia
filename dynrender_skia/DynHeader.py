@@ -101,7 +101,7 @@ class BiliHeader:
         return None
 
     @staticmethod
-    async def circle_face(img: skia.Image, size: int) -> object:
+    async def circle_face(img: skia.Image, size: int) -> skia.Image:
         surface = skia.Surface(img.dimensions().width(), img.dimensions().height())
         mask = surface.getCanvas()
         mask.clear(skia.Color(255, 255, 255, 255))
@@ -111,8 +111,11 @@ class BiliHeader:
         #     AntiAlias=True,
         # )
         radius = int(img.dimensions().width() / 2)
-        mask.clipRRect(skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), radius,radius), skia.ClipOp.kIntersect)
-        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0,img.dimensions().width(), img.dimensions().height()), skia.Rect.MakeXYWH(0,0,img.dimensions().width(), img.dimensions().height()))
+        mask.clipRRect(
+            skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), radius, radius),
+            skia.ClipOp.kIntersect)
+        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()),
+                           skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()))
         # mask.drawCircle(radius, radius, radius, paint)
         paint = skia.Paint(
             Style=skia.Paint.kStroke_Style,
@@ -125,7 +128,7 @@ class BiliHeader:
         #     mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
         # )
         # canvas = skia.Canvas(image_array, colorType=skia.ColorType.kRGBA_8888_ColorType)
-        mask.drawCircle(radius, radius, radius-3, paint)
+        mask.drawCircle(radius, radius, radius - 3, paint)
         return skia.Image.fromarray(
             array=mask.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,
@@ -219,8 +222,9 @@ class RepostHeader:
     async def draw_face(self, url, mid):
         if url:
             img = await self.get_face(mid, url)
-            if img is not None:
-                face = await self.circle_face(img, 80)
+            if img is None:
+                return
+            face = await self.circle_face(img, 80)
             await paste(self.canvas, face, (40, 10))
 
     async def draw_name(self, name, pos: int):
@@ -242,8 +246,11 @@ class RepostHeader:
         #     AntiAlias=True,
         # )
         radius = int(img.dimensions().width() / 2)
-        mask.clipRRect(skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), radius,radius), skia.ClipOp.kIntersect)
-        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0,img.dimensions().width(), img.dimensions().height()), skia.Rect.MakeXYWH(0,0,img.dimensions().width(), img.dimensions().height()))
+        mask.clipRRect(
+            skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), radius, radius),
+            skia.ClipOp.kIntersect)
+        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()),
+                           skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()))
         # mask.drawCircle(radius, radius, radius, paint)
 
         paint = skia.Paint(
@@ -268,9 +275,8 @@ class RepostHeader:
         img_name = f"{mid}.webp"
         img_url = f"{url}@240w_240h_1c_1s.webp"
         img_path = path.join(self.static_path, "Cache", "Face", img_name)
-        if path.exists(img_path):
-            if time() - int(path.getmtime(img_path)) <= 43200:
-                return skia.Image.open(img_path)
+        if path.exists(img_path) and time() - int(path.getmtime(img_path)) <= 43200:
+            return skia.Image.open(img_path)
         img: skia.Image = await get_pictures(img_url)
         if img is not None:
             img.save(img_path)

@@ -32,17 +32,26 @@ class AbstractAdditional(ABC):
         pass
 
     async def make_badge(self, badge: str, font_size: int, pos: tuple, img_size: tuple, text_pos: tuple):
-        self.text_font.setSize(font_size)
+        text_font = self.text_font
+        if text_font.textToGlyphs(text=badge[0])[0] == 0:  # type: ignore
+            if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+                self.style.font.font_family,
+                self.style.font.font_style,
+                ["zh", "en"],
+                ord(badge[0]),
+            ):
+                text_font = skia.Font(typeface, self.style.font.font_size.text)
+        text_font.setSize(font_size)
         surface = skia.Surface(*img_size)
         canvas = surface.getCanvas()
         canvas.clear(skia.Color(*self.style.color.font_color.name_big_vip))
-        blob = skia.TextBlob(badge, self.text_font)
+        blob = skia.TextBlob(text=badge, font=text_font)  # type: ignore
         paint = skia.Paint(AntiAlias=True, Color=skia.Color4f.kWhite)
         canvas.drawTextBlob(blob, text_pos[0], text_pos[1], paint)
         tag_img = skia.Image.fromarray(
-            canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
+            array=canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType),
             colorType=skia.ColorType.kRGBA_8888_ColorType,
-        )
+        )  # type: ignore
         tag_img = await self.make_round_cornor(tag_img, 10)
         await paste(self.canvas, tag_img, pos)
 

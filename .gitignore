@@ -164,7 +164,8 @@ cython_debug/
 .vscode/
 
 # test file
-
 sample
-/Static/
-tests/*
+.tests/preview.png
+
+# Static files
+Static/

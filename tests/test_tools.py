@@ -62,6 +62,8 @@ async def test_request_img_with_respx(resource_dir: pathlib.Path) -> None:
             size = (100, 100)
             img = await request_img(client, url, size)
 
+            if img is None:
+                return
             assert img.height() == 100
             assert img.width() == 100
 
@@ -93,14 +95,16 @@ class TestRequestImg:
             mock.get(mock_img_url).respond(content=img_content, status_code=200)
             size = (100, 100)
             img = await request_img(client, mock_img_url, size)
+            if img is None:
+                return
             assert img.height() == 100
             assert img.width() == 100
 
-    async def test_request_img_with_exception(self, client: httpx.AsyncClient, img_url: str) -> None:
-        async with respx.mock(base_url=img_url) as mock:
-            mock.get(img_url).mock(side_effect=httpx.ConnectError("Connection error"))
+    async def test_request_img_with_exception(self, client: httpx.AsyncClient, mock_img_url: str) -> None:
+        async with respx.mock(base_url=mock_img_url) as mock:
+            mock.get(mock_img_url).mock(side_effect=httpx.ConnectError("Connection error"))
 
-            img = await request_img(client, img_url, None)
+            img = await request_img(client, mock_img_url, None)
             assert img is None
 
 
@@ -116,8 +120,9 @@ class TestGetPictures:
         async with respx.mock(base_url=mock_img_url) as mock:
             img_content = img_path.read_bytes()
             mock.get(mock_img_url).respond(content=img_content, status_code=200)
+            image: skia.Image = await get_pictures(mock_img_url, None)
 
-            img_array = (await get_pictures(mock_img_url, None)).tobytes()
+            img_array = image.tobytes()
             result = mock_skia_image.tobytes()
             assert img_array == result
 

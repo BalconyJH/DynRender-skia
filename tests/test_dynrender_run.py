@@ -1,4 +1,5 @@
 import json
+import os
 
 import aiofiles
 import pytest
@@ -8,6 +9,7 @@ from dynamicadaptor.DynamicConversion import formate_message
 from dynrender_skia.Core import DynRender
 
 
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip this test in CI environments.")
 @pytest.mark.asyncio
 async def test_dyn_render_run(shared_cache, resource_dir):
     async with aiofiles.open(resource_dir / "message.json", encoding="utf-8") as f:
@@ -20,3 +22,4 @@ async def test_dyn_render_run(shared_cache, resource_dir):
     img = await DynRender(static_path=str(shared_cache)).run(message)
 
     img = skia.Image.fromarray(img, colorType=skia.ColorType.kRGBA_8888_ColorType)
+    img.save("preview.png")

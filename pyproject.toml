@@ -12,6 +12,7 @@ dependencies = [
     "emoji<3.0.0,>=2.6.0",
     "dynamicadaptor<1.0.0,>=0.4.9",
     "aiofiles~=23.2",
+    "tenacity>=8.4.1",
 ]
 requires-python = ">=3.9,<4.0"
 readme = "README.md"

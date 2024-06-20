@@ -14,18 +14,18 @@ from typing import Optional
 import emoji
 import numpy as np
 import skia
-from dynamicadaptor.Content import RichTextDetail
+from dynamicadaptor.Content import RichTextDetail, Emoji
 from dynamicadaptor.Content import Text
-from dynamicadaptor.Majors import Major, RichTextNodes
+from dynamicadaptor.Majors import Major, RichTextNodes, DrawItem
 from loguru import logger
 
 from .DynStyle import PolyStyle
 from .DynText import BiliText
-from .DynTools import paste, get_pictures, merge_pictures
+from .DynTools import paste, get_pictures, merge_pictures, draw_shadow
 
 
 class AbstractMajor(ABC):
-    def __init__(self, src_path: str, style: PolyStyle, dyn_major: Major = None) -> None:
+    def __init__(self, src_path: str, style: PolyStyle, dyn_major: Major) -> None:
         self.style = style
         self.major = dyn_major
         self.text_font = skia.Font(
@@ -100,30 +100,21 @@ class AbstractMajor(ABC):
 
     async def get_emoji_text(self, text):
         result = emoji.emoji_list(text)
-        temp = {}
-        for i in result:
-            temp[i["match_start"]] = [i["match_end"], i["emoji"]]
-        return temp
-
-    async def draw_shadow(self, canvas, pos: tuple, corner: int, bg_color):
-        x, y, width, height = pos
-        rec = skia.Rect.MakeXYWH(x, y, width, height)
-        paint = skia.Paint(
-            Color=skia.Color(*bg_color),
-            AntiAlias=True,
-            ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120)),
-        )
-        if corner != 0:
-            canvas.drawRoundRect(rec, corner, corner, paint)
-        else:
-            canvas.drawRect(rec, paint)
+        return {i["match_start"]: [i["match_end"], i["emoji"]] for i in result}
 
     async def make_round_cornor(self, img, corner: int):
         surface = skia.Surface(img.width(), img.height())
         mask = surface.getCanvas()
         mask.clear(skia.Color(255, 255, 255, 0))
-        mask.clipRRect(skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), corner,corner), skia.ClipOp.kIntersect)
-        mask.drawImageRect(img, skia.Rect.MakeXYWH(0, 0,img.dimensions().width(), img.dimensions().height()), skia.Rect.MakeXYWH(0,0,img.dimensions().width(), img.dimensions().height()))
+        mask.clipRRect(
+            skia.RRect(skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()), corner, corner),
+            skia.ClipOp.kIntersect,
+        )
+        mask.drawImageRect(
+            img,
+            skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()),
+            skia.Rect.MakeXYWH(0, 0, img.dimensions().width(), img.dimensions().height()),
+        )
         # paint = skia.Paint(
         #     Style=skia.Paint.kFill_Style,
         #     Color=skia.Color(255, 255, 255, 255),
@@ -239,7 +230,7 @@ class BiliMajor:
 class DynMajorDraw:
     """Dynamic picture drawing class"""
 
-    def __init__(self, style: PolyStyle, items=None) -> None:
+    def __init__(self, style: PolyStyle, items: Optional[list[DrawItem]] = None) -> None:
         self.style = style
         self.items = items
 
@@ -342,7 +333,7 @@ class DynMajorDraw:
 
 
 class DynMajorArchive(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
@@ -351,7 +342,7 @@ class DynMajorArchive(AbstractMajor):
         try:
             cover = await get_pictures(f"{self.major.archive.cover}@505w_285h_1c.webp", (1010, 570))
 
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.draw_text(
@@ -384,7 +375,7 @@ class DynMajorLiveRcmd(AbstractMajor):
                 (1010, 570),
             )
 
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
 
@@ -420,10 +411,14 @@ class DynMajorOpus(AbstractMajor):
             type=rich_text_node.type,
             text=rich_text_node.text,
             orig_text=rich_text_node.orig_text,
-            emoji=rich_text_node.emoji.dict() if rich_text_node.type == "RICH_TEXT_NODE_TYPE_EMOJI" else None,
+            emoji=Emoji.model_validate(rich_text_node.emoji.model_dump())
+            if rich_text_node.type == "RICH_TEXT_NODE_TYPE_EMOJI"
+            else None,
         )
 
     async def run(self, repost) -> Optional[np.ndarray]:
+        if self.major.opus is None:
+            return None
         pics = []
         try:
             if self.major.opus.title:
@@ -478,7 +473,7 @@ class DynMajorArticle(AbstractMajor):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 600), 20, background_color)
+            await draw_shadow(self.canvas, (35, 20, 1010, 600), 20, background_color)
 
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 600)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
@@ -534,7 +529,7 @@ class DynMajorCommon(AbstractMajor):
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 245), 20, background_color)
+            await draw_shadow(self.canvas, (35, 20, 1010, 245), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 245)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             cover = await get_pictures(f"{self.major.common.cover}@245w_245h_1c.webp", (245, 245))
@@ -587,13 +582,13 @@ class DynMajorCommon(AbstractMajor):
 
 
 class DynMajorMusic(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 285)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
-            await self.draw_shadow(self.canvas, (35, 20, 1010, 245), 20, background_color)
+            await draw_shadow(self.canvas, (35, 20, 1010, 245), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 20, 1010, 245)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             cover = await get_pictures(f"{self.major.music.cover}@245w_245h_1c.webp", (245, 245))
@@ -624,7 +619,7 @@ class DynMajorMusic(AbstractMajor):
 
 
 class DynMajorPgc(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
@@ -632,7 +627,7 @@ class DynMajorPgc(AbstractMajor):
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
             cover = await get_pictures(f"{self.major.pgc.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.draw_text(
@@ -657,7 +652,7 @@ class DynMajorPgc(AbstractMajor):
 
 
 class DynMajorMediaList(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
@@ -665,7 +660,7 @@ class DynMajorMediaList(AbstractMajor):
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
             cover = await get_pictures(f"{self.major.medialist.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.draw_text(
@@ -690,7 +685,7 @@ class DynMajorMediaList(AbstractMajor):
 
 
 class DynMajorCourses(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
@@ -698,7 +693,7 @@ class DynMajorCourses(AbstractMajor):
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
             cover = await get_pictures(f"{self.major.courses.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.draw_text(
@@ -723,7 +718,7 @@ class DynMajorCourses(AbstractMajor):
 
 
 class DynMajorUgc(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
@@ -731,7 +726,7 @@ class DynMajorUgc(AbstractMajor):
         tv = skia.Image.open(path.join(self.src_path, "tv.png")).resize(130, 130)
         try:
             cover = await get_pictures(f"{self.major.ugc_season.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.draw_text(
@@ -756,14 +751,16 @@ class DynMajorUgc(AbstractMajor):
 
 
 class DynMajorLive(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
+        if self.major.live is None:
+            return None
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 695)
         self.canvas = surface.getCanvas()
         self.canvas.clear(skia.Color(*background_color))
         try:
             cover = await get_pictures(f"{self.major.live.cover}@505w_285h_1c.webp", (1010, 570))
-            await self.draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
+            await draw_shadow(self.canvas, (35, 25, 1010, 655), 20, background_color)
             rec = skia.Rect.MakeXYWH(35, 25, 1010, 665)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await self.draw_text(
@@ -789,7 +786,7 @@ class DynMajorLive(AbstractMajor):
 
 
 class DynMajorNone(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 100)
         self.canvas = surface.getCanvas()
@@ -814,7 +811,7 @@ class DynMajorNone(AbstractMajor):
 
 
 class DynMajorBlocked(AbstractMajor):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 1200)
         self.canvas = surface.getCanvas()
@@ -826,7 +823,7 @@ class DynMajorBlocked(AbstractMajor):
                     self.major.blocked.icon.img_day,
                 ]
             )
-            await self.draw_shadow(self.canvas, (40, 100, 1000, 1000), 20, background_color)
+            await draw_shadow(self.canvas, (40, 100, 1000, 1000), 20, background_color)
             rec = skia.Rect.MakeXYWH(40, 100, 1000, 1000)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
             await paste(self.canvas, result[1], (456, 380))

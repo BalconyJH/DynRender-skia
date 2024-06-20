@@ -129,6 +129,8 @@ class DynAddReserve(AbstractAdditional):
             return None
 
     async def make_desc(self):
+        if self.additional.reserve is None:
+            return None
         draw = DrawText(self.style)
         if self.additional.reserve.desc3 is not None:
             await draw.draw_text(
@@ -192,6 +194,8 @@ class DynAddUpOwerLottery(AbstractAdditional):
             return None
 
     async def make_desc(self):
+        if self.additional.upower_lottery is None:
+            return None
         draw = DrawText(self.style)
         await draw.draw_text(
             self.canvas,
@@ -213,7 +217,9 @@ class DynAddUpOwerLottery(AbstractAdditional):
 
 
 class DynAddGoods(AbstractAdditional):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
+        if self.additional.goods is None:
+            return None
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 310)
         self.canvas = surface.getCanvas()
@@ -235,6 +241,8 @@ class DynAddGoods(AbstractAdditional):
             return None
 
     async def make_cover(self):
+        if self.additional.goods is None:
+            return None
         url_list = []
         for i in self.additional.goods.items:
             url = re.sub(r"@(\d+)h_(\d+)w\S+", "", i.cover)
@@ -257,6 +265,8 @@ class DynAddGoods(AbstractAdditional):
             )
 
     async def make_title_desc(self):
+        if self.additional.goods is None:
+            return None
         if len(self.additional.goods.items) > 1:
             return
         draw = DrawText(self.style)
@@ -279,7 +289,7 @@ class DynAddGoods(AbstractAdditional):
 
 
 class DynAddUgc(AbstractAdditional):
-    async def run(self, repost):
+    async def run(self, repost) -> Optional[np.ndarray]:
         background_color = self.style.color.background.repost if repost else self.style.color.background.normal
         surface = skia.Surface(1080, 280)
         self.canvas = surface.getCanvas()
@@ -297,10 +307,14 @@ class DynAddUgc(AbstractAdditional):
             return None
 
     async def make_cover(self):
+        if self.additional.ugc is None:
+            return None
         cover = await get_pictures(f"{self.additional.ugc.cover}@340w_195h_1c.webp")
         await paste(self.canvas, await self.make_round_cornor(cover, 10), (60, 45))
 
     async def make_title_desc(self):
+        if self.additional.ugc is None:
+            return None
         draw = DrawText(self.style)
         await draw.draw_text(
             self.canvas,
@@ -318,6 +332,10 @@ class DynAddUgc(AbstractAdditional):
         )
 
     async def make_sub_tag(self):
+        if self.additional.ugc is None:
+            return None
+        if self.additional.ugc.duration is None:
+            return
         self.text_font.setSize(self.style.font.font_size.sub_title)
         size = self.text_font.measureText(self.additional.ugc.duration)
         surface = skia.Surface(int(size + 20), int(self.text_font.getSize() + 20))
@@ -361,14 +379,17 @@ class DynAddVote(AbstractAdditional):
         await paste(self.canvas, await self.make_round_cornor(cover, 10), (60, 45))
 
     async def make_title_desc(self):
+        if self.additional.vote is None:
+            return None
         draw = DrawText(self.style)
-        await draw.draw_text(
-            self.canvas,
-            self.additional.vote.desc,
-            self.style.font.font_size.text,
-            (280, 110, 810, 110, 0),
-            self.style.color.font_color.text,
-        )
+        if self.additional.vote.desc is not None:
+            await draw.draw_text(
+                self.canvas,
+                self.additional.vote.desc,
+                self.style.font.font_size.text,
+                (280, 110, 810, 110, 0),
+                self.style.color.font_color.text,
+            )
         if self.additional.vote.join_num is None:
             join_num = "0人参与"
         else:
@@ -392,13 +413,14 @@ class DynAddCommon(AbstractAdditional):
         try:
             await draw_shadow(self.canvas, (35, 80, 1010, 245), 15, background_color)
 
-            await DrawText(self.style).draw_text(
-                self.canvas,
-                self.additional.common.head_text,
-                self.style.font.font_size.title,
-                (50, 50, 1010, 90, 0),
-                self.style.color.font_color.sub_title,
-            )
+            if self.additional.common and self.additional.common.head_text is not None:
+                await DrawText(self.style).draw_text(
+                    self.canvas,
+                    self.additional.common.head_text,
+                    self.style.font.font_size.title,
+                    (50, 50, 1010, 90, 0),
+                    self.style.color.font_color.sub_title,
+                )
 
             rec = skia.Rect.MakeXYWH(35, 80, 1010, 240)
             self.canvas.clipRRect(skia.RRect(rec, 20, 20), skia.ClipOp.kIntersect)
@@ -415,6 +437,8 @@ class DynAddCommon(AbstractAdditional):
             return None
 
     async def make_cover(self):
+        if self.additional.common is None:
+            return None
         if self.additional.common.sub_type in {"decoration", "game"}:
             cover_url = f"{self.additional.common.cover}@190w_190h_1c.webp"
             cover = await get_pictures(cover_url, (190, 190))
@@ -424,14 +448,10 @@ class DynAddCommon(AbstractAdditional):
         await paste(self.canvas, await self.make_round_cornor(cover, 15), (60, 110))
 
     async def make_title(self):
-        if self.additional.common.desc2:
-            y = 150
-        else:
-            y = 180
-        if self.additional.common.sub_type in {"decoration", "game"}:
-            x = 280
-        else:
-            x = 250
+        if self.additional.common is None:
+            return None
+        y = 150 if self.additional.common.desc2 else 180
+        x = 280 if self.additional.common.sub_type in {"decoration", "game"} else 250
         await DrawText(self.style).draw_text(
             self.canvas,
             self.additional.common.title,
@@ -441,11 +461,10 @@ class DynAddCommon(AbstractAdditional):
         )
 
     async def make_desc(self):
+        if self.additional.common is None:
+            return None
         draw = DrawText(self.style)
-        if self.additional.common.sub_type in {"decoration", "game"}:
-            x = 280
-        else:
-            x = 250
+        x = 280 if self.additional.common.sub_type in {"decoration", "game"} else 250
         if self.additional.common.desc2:
             await draw.draw_text(
                 self.canvas,
@@ -472,6 +491,8 @@ class DynAddCommon(AbstractAdditional):
             )
 
     async def select_badge(self):
+        if self.additional.common is None:
+            return None
         badge_text_map = {
             "pugv": "去试看",
             "ogv": "去看看",

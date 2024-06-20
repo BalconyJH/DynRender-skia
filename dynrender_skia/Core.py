@@ -54,5 +54,5 @@ class DynRender:
             tasks.append(BiliAdditional(self.static_path, self.style).run(message.additional))
 
         tasks.append(Footer(self.static_path, self.style).run())
-        result = await asyncio.gather(*tasks)
+        result:list = list(await asyncio.gather(*tasks))
         return await merge_pictures(result)

@@ -44,8 +44,8 @@ def get_sys_info():
 
 
 async def get_pictures(
-    url: Union[str, List[str]], size: Optional[Tuple[int, int]] = None
-) -> Union[skia.Image, Tuple[skia.Image, ...]]:
+    url: Union[str, list[str]], size: Optional[tuple[int, int]] = None
+) -> Union[skia.Image, tuple[skia.Image, ...]]:
     async with httpx.AsyncClient() as client:
         if isinstance(url, list):
             return await asyncio.gather(*[request_img(client, i, size) for i in url])
@@ -83,7 +83,7 @@ async def request_img(client: httpx.AsyncClient, url: str, size: Optional[Tuple[
     return None
 
 
-async def merge_pictures(img_list: List[ndarray]) -> ndarray:
+async def merge_pictures(img_list: list[ndarray]) -> ndarray:
     img_top = np.zeros([0, 1080, 4], np.uint8)
     if len(img_list) == 1 and img_list[0] is not None:
         return img_list[0]
@@ -193,7 +193,7 @@ class DrawText:
                 x = pos[0]
 
     @staticmethod
-    async def get_emoji_text(text: str) -> Dict[int, List[Union[int, str]]]:
+    async def get_emoji_text(text: str) -> dict[int, list[Union[int, str]]]:
         result = emoji.emoji_list(text)
         return {i["match_start"]: [i["match_end"], i["emoji"]] for i in result}
 

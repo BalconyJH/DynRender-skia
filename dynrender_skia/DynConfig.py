@@ -8,7 +8,8 @@
 
 import json
 from os import getcwd, makedirs, path
-from typing import Optional, Iterable, cast
+from typing import Optional, cast
+from collections.abc import Iterable
 from zipfile import ZipFile
 
 import skia

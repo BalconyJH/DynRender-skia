@@ -17,9 +17,7 @@ ImportError: DLL load failed while importing skia: The specified module could no
 > ubuntu用户
 
 ```bash
-
 apt install libgl1-mesa-glx
-
 ```
 > ArchLinux用户
 

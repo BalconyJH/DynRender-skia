@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 from _pytest.tmpdir import TempPathFactory
 from loguru import logger
 
@@ -25,9 +26,7 @@ def resource_dir() -> pathlib.Path:
 
 @pytest.fixture(scope="session")
 def dynrender_instance(shared_cache: pathlib.Path) -> DynRender:
-    dynrender_instance = DynRender(static_path=str(shared_cache))
-    logger.info("DynRender实例创建成功")
-    return dynrender_instance
+    return DynRender(static_path=str(shared_cache))
 
 
 @pytest.fixture(scope="module")
@@ -38,3 +37,24 @@ def mock_img_url() -> str:
 @pytest.fixture(scope="module")
 def img_path(resource_dir: pathlib.Path) -> pathlib.Path:
     return Path(resource_dir / "bilibili.png")
+
+
+@pytest.fixture
+def caplog(caplog: LogCaptureFixture):
+    handler_id = logger.add(
+        caplog.handler,
+        format="{message}",
+        level=0,
+        filter=lambda record: record["level"].no >= caplog.handler.level,
+        enqueue=False,
+    )
+    yield caplog
+    logger.remove(handler_id)
+
+
+# @pytest.fixture
+# def reportlog(pytestconfig):
+#     logging_plugin = pytestconfig.pluginmanager.getplugin("logging-plugin")
+#     handler_id = logger.add(logging_plugin.report_handler, format="{message}")
+#     yield
+#     logger.remove(handler_id)

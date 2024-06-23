@@ -107,6 +107,13 @@ class TestRequestImg:
             img = await request_img(client, mock_img_url, None)
             assert img is None
 
+    async def test_skia_encode_error(self, client: httpx.AsyncClient, mock_img_url: str, caplog) -> None:
+        async with respx.mock() as mock:
+            img_content = None
+            mock.get(mock_img_url).respond(content=img_content, status_code=200)
+            img = await request_img(client, mock_img_url, None)
+            assert "Image decode error or request returned none in content" in caplog.text
+
 
 @pytest.mark.asyncio
 class TestGetPictures:

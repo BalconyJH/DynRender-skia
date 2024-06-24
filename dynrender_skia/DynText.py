@@ -50,8 +50,8 @@ class BiliText:
                 tasks.append(self.make_text_image(dyn_text))
             await asyncio.gather(*tasks)
             return await merge_pictures(self.image_list)
-        except Exception:
-            logger.exception("Error")
+        except Exception as e:
+            logger.exception(e)
             return None
 
     async def make_text_image(self, dyn_text):
@@ -74,7 +74,6 @@ class BiliText:
         emoji_pic = []
         emoji_index = []
         emoji_url_list = []
-        temp = {}
         icon_size = int(self.style.font.font_size.text * 1.5)
         for i, emoji_text in enumerate(emoji_name):
             emoji_path = path.join(self.emoji_path, f"{emoji_text}.png")
@@ -90,16 +89,12 @@ class BiliText:
                 emoji_pic.insert(j, result[i])
                 if result[i] is not None:
                     result[i].save(emoji_path)
-        for i, j in enumerate(emoji_name):
-            temp[j] = emoji_pic[i]
+        temp = {j: emoji_pic[i] for i, j in enumerate(emoji_name)}
         self.emoji_dict = temp
 
     async def get_emoji_text(self, text: str):
         result = emoji.emoji_list(text)
-        temp = {}
-        for i in result:
-            temp[i["match_start"]] = [i["match_end"], i["emoji"]]
-        return temp
+        return {i["match_start"]: [i["match_end"], i["emoji"]] for i in result}
 
     async def get_rich_pic(self, rich_list):
         rich_dic = {}
@@ -130,11 +125,10 @@ class BiliText:
                     img_path = path.join(self.src_path, "article.png")
                     img = skia.Image.open(img_path).resize(rich_size, rich_size)
                     rich_dic["cv"] = img
-            else:
-                if "link" not in rich_dic:
-                    img_path = path.join(self.src_path, "link.png")
-                    img = skia.Image.open(img_path).resize(rich_size, rich_size)
-                    rich_dic["link"] = img
+            elif "link" not in rich_dic:
+                img_path = path.join(self.src_path, "link.png")
+                img = skia.Image.open(img_path).resize(rich_size, rich_size)
+                rich_dic["link"] = img
         return rich_dic
 
     async def make_topic(self, topic: str) -> None:

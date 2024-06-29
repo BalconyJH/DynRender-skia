@@ -63,7 +63,7 @@ async def test_request_img_with_respx(resource_dir: pathlib.Path) -> None:
             img = await request_img(client, url, size)
 
             if img is None:
-                return
+                return  # pragma: no cover
             assert img.height() == 100
             assert img.width() == 100
 
@@ -96,16 +96,30 @@ class TestRequestImg:
             size = (100, 100)
             img = await request_img(client, mock_img_url, size)
             if img is None:
-                return
+                return  # pragma: no cover
             assert img.height() == 100
             assert img.width() == 100
 
-    async def test_request_img_with_exception(self, client: httpx.AsyncClient, mock_img_url: str) -> None:
+    async def test_request_img_with_http_exception(self, client: httpx.AsyncClient, mock_img_url: str, caplog) -> None:
         async with respx.mock(base_url=mock_img_url) as mock:
             mock.get(mock_img_url).mock(side_effect=httpx.ConnectError("Connection error"))
 
-            img = await request_img(client, mock_img_url, None)
-            assert img is None
+            _ = await request_img(client, mock_img_url, None)
+            assert "Request or HTTP error occurred" in caplog.text
+
+    async def test_skia_encode_exception(self, client: httpx.AsyncClient, mock_img_url: str, caplog) -> None:
+        async with respx.mock() as mock:
+            img_content = None
+            mock.get(mock_img_url).respond(content=img_content, status_code=200)
+            _ = await request_img(client, mock_img_url, None)
+            assert "Image decode error or request returned none in content" in caplog.text
+
+    async def test_unexpected_exception(self, client: httpx.AsyncClient, mock_img_url: str, caplog):
+        async with respx.mock(base_url=mock_img_url) as mock:
+            mock.get(mock_img_url).mock(side_effect=TypeError("Invalid type provided"))
+
+            _ = await request_img(client, mock_img_url, None)
+            assert "Unexpected error" in caplog.text
 
 
 @pytest.mark.asyncio

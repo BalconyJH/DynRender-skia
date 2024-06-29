@@ -7,23 +7,26 @@ import numpy as np
 import skia
 from dynamicadaptor.AddonCard import Additional
 from loguru import logger
+from skia import Canvas
 
-from .DynConfig import PolyStyle
+from .DynStyle import PolyStyle
 from .DynTools import DrawText, get_pictures, paste, draw_shadow
 
 
 class AbstractAdditional(ABC):
     def __init__(self, src_path: str, style: PolyStyle, additional: Additional) -> None:
-        self.style = style
-        self.additional = additional
-        self.src_path = src_path
-        self.canvas = None
+        self.style: PolyStyle = style
+        self.additional: Additional = additional
+        self.src_path: str = src_path
+        self.canvas: Optional[Canvas] = None
         self.text_font = skia.Font(
-            skia.Typeface.MakeFromName(self.style.font.font_family, self.style.font.font_style),
+            skia.Typeface.MakeFromName(familyName=self.style.font.font_family, fontStyle=self.style.font.font_style),
             self.style.font.font_size.text,
         )
         self.emoji_font = skia.Font(
-            skia.Typeface.MakeFromName(self.style.font.emoji_font_family, self.style.font.font_style),
+            skia.Typeface.MakeFromName(
+                familyName=self.style.font.emoji_font_family, fontStyle=self.style.font.font_style
+            ),
             self.style.font.font_size.text,
         )
 

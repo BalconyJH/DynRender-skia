@@ -147,45 +147,152 @@ class DrawText:
             self.style.font.font_size.text,
         )
 
-    async def draw_text(self, canvas, text: str, font_size, pos: tuple, font_color: tuple):
-        paint = skia.Paint(AntiAlias=True, Color=skia.Color(*font_color))
+    @staticmethod
+    def initialize_paint(font_color: tuple[int, int, int, int]) -> skia.Paint:
+        """
+        Initialize a Paint object with the specified font color.
+        """
+        return skia.Paint(AntiAlias=True, Color=skia.Color(*font_color))
+
+    @staticmethod
+    def draw_ellipsis(canvas: skia.Canvas, x: int, y: int, font: skia.Font, paint: skia.Paint):
+        """
+        Draw an ellipsis at the specified position using the provided font and paint.
+        """
+        blob: skia.TextBlob = skia.TextBlob("...", font)  # type: ignore
+        canvas.drawTextBlob(blob, x, y, paint)  # type: ignore
+
+    def match_font(self, char: str, font_size: int) -> Optional[skia.Font]:
+        """
+        Matches a font for a given character and font size.
+
+        This method uses the Skia Font Manager to find an appropriate font for the specified
+        character based on the provided font size. It attempts to match a font that supports
+        the character, considering the font family and style defined in the object's `style` attribute.
+
+        Args:
+            char (str): The character for which to find a matching font. Should be a single character string.
+            font_size (int): The desired font size for the matched font.
+
+        Returns:
+            Optional[skia.Font]: A Skia `Font` object if a matching typeface is
+            found, otherwise `None`.
+        """
+        if typeface := skia.FontMgr().matchFamilyStyleCharacter(
+            self.style.font.font_family,
+            self.style.font.font_style,
+            ["zh", "en"],
+            ord(char),
+        ):
+            return skia.Font(typeface, font_size)
+        return None
+
+    def set_font_sizes(self, font_size: int):
+        """
+        Set the font sizes for the text and emoji fonts.
+        """
         self.text_font.setSize(font_size)
         self.emoji_font.setSize(font_size)
+
+    async def extract_emoji_info(self, text: str) -> tuple[str, dict[int, list[Union[int, str]]]]:
+        """
+        Removes tabs from the given text and extracts emoji information.
+
+        This function removes all tab characters from the provided text, then extracts
+        and processes information about any emojis present in the text. It returns
+        the cleaned text and a dictionary containing the emoji information.
+
+        Args:
+            text (str): The input text containing possible emojis.
+
+        Usage:
+        ```python
+        text = "Hello, 🌍!"
+        cleaned_text, emoji_info = await extract_emoji_info(text)
+        print(cleaned_text)
+        print(emoji_info)
+        # Output: "Hello, 🌍!", {7: [8, '🌍']}
+        ```
+
+        Returns:
+            tuple: A tuple containing:
+                - The cleaned text without tab characters (str).
+                - A dictionary with keys as integer positions of emojis in the text,
+                  and values as lists containing the emoji index and the corresponding
+                  emoji string (dict[int, list[Union[int, str]]]).
+        """
         text = text.replace("\t", "")
-        emoji_info = await self.get_emoji_text(text)
+        emoji_info: dict[int, list[Union[int, str]]] = await self.get_emoji_text(text)
+        return text, emoji_info
+
+    @staticmethod
+    async def get_emoji_text(text: str) -> dict[int, list[Union[int, str]]]:
+        """
+        Get the positions of emojis in the text and their corresponding Unicode characters.
+
+        Args:
+            text (str): The text in which to search for emojis.
+
+        Usage:
+        ```python
+        text = "Hello, 🌍!"
+        emoji_info = await get_emoji_text(text)
+        print(emoji_info)
+        # Output: {7: [8, '🌍']}
+        ```
+
+        Returns:
+            dict[int, list[Union[int, str]]]: A dictionary with the starting position of each emoji in the text as the key,
+            and a list containing the end position of the emoji and the emoji character as the value.
+        """
+        result = emoji.emoji_list(text)
+        return {i["match_start"]: [i["match_end"], i["emoji"]] for i in result}
+
+    async def draw_text(
+        self,
+        canvas: skia.Canvas,
+        text: str,
+        font_size: int,
+        pos: tuple[int, int, int, int, int],
+        font_color: tuple[int, int, int, int],
+    ):
+        self.set_font_sizes(font_size)
+        paint = self.initialize_paint(font_color)
+
+        text, emoji_info = await self.extract_emoji_info(text)
         total = len(text) - 1
         x, y, x_bound, y_bound, y_int = pos
         offset: int = 0
+
         while offset <= total:
             j = text[offset]
             if j == "\n":
                 break
-            if offset in emoji_info.keys():
+
+            if offset in emoji_info:
                 j = emoji_info[offset][1]
-                offset = emoji_info[offset][0]  # type: ignore
+                end_pos = emoji_info[offset][0]
+                if isinstance(end_pos, int):
+                    offset = end_pos
+                else:
+                    raise TypeError(f"Expected integer for offset end position, got {type(end_pos).__name__}")
                 font = self.emoji_font
             else:
                 offset += 1
                 font = self.text_font
-            if font.textToGlyphs(j)[0] == 0:
-                if typeface := skia.FontMgr().matchFamilyStyleCharacter(
-                    self.style.font.font_family,
-                    self.style.font.font_style,
-                    ["zh", "en"],
-                    ord(j[0]),
-                ):
-                    font = skia.Font(typeface, font_size)
-                else:
-                    font = self.text_font
+
+            if isinstance(j, str) and font.textToGlyphs(j)[0] == 0:
+                font = self.match_font(j, font_size) or self.text_font
+
             measure = font.measureText(j)
             blob = skia.TextBlob(j, font)
             canvas.drawTextBlob(blob, x, y, paint)
             x += measure
+
             if x > x_bound:
                 y += y_int
                 if y >= y_bound:
-                    blob = skia.TextBlob("...", font)
-                    canvas.drawTextBlob(blob, x, y - y_int, paint)
+                    self.draw_ellipsis(canvas, x, y - y_int, font, paint)
                     break
                 x = pos[0]
 

@@ -2,7 +2,7 @@
 # @Author  : Polyisoprene
 # @File    : DynTools.py
 import asyncio
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 import emoji
 import httpx
@@ -148,7 +148,7 @@ class DrawText:
         )
 
     @staticmethod
-    def initialize_paint(font_color: tuple[int, int, int, int]) -> skia.Paint:
+    def initialize_paint(font_color: tuple) -> skia.Paint:
         """
         Initialize a Paint object with the specified font color.
         """
@@ -253,50 +253,74 @@ class DrawText:
         canvas: skia.Canvas,
         text: str,
         font_size: int,
-        pos: tuple[int, int, int, int, int],
-        font_color: tuple[int, int, int, int],
+        position_and_bounds: tuple[int, int, int, int, int],
+        font_color: tuple,
     ):
         self.set_font_sizes(font_size)
         paint = self.initialize_paint(font_color)
 
         text, emoji_info = await self.extract_emoji_info(text)
-        total = len(text) - 1
-        x, y, x_bound, y_bound, y_int = pos
+        text_length = len(text) - 1
+        current_x, current_y, max_width, max_height, line_spacing = position_and_bounds
+        initial_x = current_x  # 保存初始 x 坐标
         offset: int = 0
 
-        while offset <= total:
-            j = text[offset]
-            if j == "\n":
+        while offset <= text_length:
+            character = text[offset]
+
+            if character == "\n":
                 break
 
             if offset in emoji_info:
-                j = emoji_info[offset][1]
-                end_pos = emoji_info[offset][0]
-                if isinstance(end_pos, int):
-                    offset = end_pos
-                else:
-                    raise TypeError(f"Expected integer for offset end position, got {type(end_pos).__name__}")
-                font = self.emoji_font
+                offset, character, font = self._handle_emoji(offset, emoji_info)
             else:
                 offset += 1
                 font = self.text_font
 
-            if isinstance(j, str) and font.textToGlyphs(j)[0] == 0:
-                font = self.match_font(j, font_size) or self.text_font
+            if not self._font_contains_character(font, character):
+                font = self.match_font(character, font_size) or self.text_font
 
-            measure = font.measureText(j)
-            blob = skia.TextBlob(j, font)
-            canvas.drawTextBlob(blob, x, y, paint)
-            x += measure
+            measure = font.measureText(character)
+            blob = skia.TextBlob(character, font)
+            canvas.drawTextBlob(blob, current_x, current_y, paint)
+            current_x += measure
 
-            if x > x_bound:
-                y += y_int
-                if y >= y_bound:
-                    self.draw_ellipsis(canvas, x, y - y_int, font, paint)
+            if self._needs_new_line(current_x, max_width):
+                current_y, current_x = self._advance_to_next_line(
+                    current_y, line_spacing, max_height, initial_x, canvas, font, paint, current_x
+                )
+                if current_y >= max_height:
                     break
-                x = pos[0]
+
+    def _handle_emoji(self, offset: int, emoji_info: dict[int, list[Union[int, str]]]) -> tuple[int, str, skia.Font]:
+        character = cast(str, emoji_info[offset][1])
+        end_pos = cast(int, emoji_info[offset][0])
+        offset = end_pos
+        font = self.emoji_font
+        return offset, character, font
 
     @staticmethod
-    async def get_emoji_text(text: str) -> dict[int, list[Union[int, str]]]:
-        result = emoji.emoji_list(text)
-        return {i["match_start"]: [i["match_end"], i["emoji"]] for i in result}
+    def _font_contains_character(font: skia.Font, character: str) -> bool:
+        return font.textToGlyphs(character)[0] != 0
+
+    @staticmethod
+    def _needs_new_line(current_x: int, max_width: int) -> bool:
+        return current_x > max_width
+
+    def _advance_to_next_line(
+        self,
+        current_y: int,
+        line_spacing: int,
+        max_height: int,
+        initial_x: int,
+        canvas: skia.Canvas,
+        font: skia.Font,
+        paint: skia.Paint,
+        current_x: int,
+    ) -> tuple[int, int]:
+        if current_y + line_spacing >= max_height:
+            self.draw_ellipsis(canvas, current_x, current_y, font, paint)
+            return max_height, initial_x
+
+        current_y += line_spacing
+        return current_y, initial_x

@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: pdm install
       - name: Run tests
-        run: pdm run pytest -n auto --cov=dynrender_skia --cov-report xml
+        run: pdm run pytest --cov=dynrender_skia --cov-report xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

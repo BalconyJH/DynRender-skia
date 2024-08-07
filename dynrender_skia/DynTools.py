@@ -12,6 +12,7 @@ from loguru import logger
 from numpy import ndarray
 
 from .DynStyle import PolyStyle
+from .exception import ParseError
 
 
 async def get_pictures(
@@ -81,6 +82,27 @@ async def request_img(client: httpx.AsyncClient, url: str, size: Optional[tuple[
 
 
 async def merge_pictures(img_list: list[ndarray]) -> ndarray:
+    """
+    Merge multiple images into a single image by stacking them vertically.
+
+    This function takes a list of images as input and merges them into a single image by stacking them
+    vertically. The width of each image must be 1080 pixels.
+
+    Usage:
+    ```python
+    img1 = np.zeros([100, 1080, 4], np.uint8)
+    img2 = np.zeros([200, 1080, 4], np.uint8)
+    img3 = np.zeros([150, 1080, 4], np.uint8)
+    img_list = [img1, img2, img3]
+    merged_img = await merge_pictures(img_list)
+    ```
+
+    Args:
+        img_list (list[ndarray]): A list of images to be merged.
+
+    Returns:
+        ndarray: A single image created by stacking the input images vertically.
+    """
     img_top = np.zeros([0, 1080, 4], np.uint8)
     if len(img_list) == 1 and img_list[0] is not None:
         return img_list[0]
@@ -112,9 +134,6 @@ async def paste(canvas: skia.Canvas, target: skia.Image, position: tuple, clear_
     Returns:
         None: The function does not return a value, but modifies the canvas in place.
     """
-    if target is None:
-        raise ValueError("Target image is None.")
-
     x, y = position
     img_height = target.dimensions().fHeight
     img_width = target.dimensions().fWidth
@@ -131,7 +150,7 @@ async def paste(canvas: skia.Canvas, target: skia.Image, position: tuple, clear_
         if clear_background:
             canvas.restore()
 
-    except (ValueError, AttributeError) as e:
+    except AttributeError as e:
         logger.exception(f"Failed to paste image: {e!s}")
 
 
@@ -278,7 +297,7 @@ class DrawText:
                 font = self.text_font
 
             if not self._font_contains_character(font, character):
-                font = self.match_font(character, font_size) or self.text_font
+                font = self.match_font(character, font_size) or self.text_font  # pragma: no cover
 
             measure = font.measureText(character)
             blob = skia.TextBlob(character, font)
@@ -293,11 +312,14 @@ class DrawText:
                     break
 
     def _handle_emoji(self, offset: int, emoji_info: dict[int, list[Union[int, str]]]) -> tuple[int, str, skia.Font]:
-        character = cast(str, emoji_info[offset][1])
-        end_pos = cast(int, emoji_info[offset][0])
-        offset = end_pos
-        font = self.emoji_font
-        return offset, character, font
+        try:
+            character = cast(str, emoji_info[offset][1])
+            end_pos = cast(int, emoji_info[offset][0])
+            offset = end_pos
+            font = self.emoji_font
+            return offset, character, font
+        except KeyError as e:
+            raise ParseError(f"Error parsing emoji information {e}") from e
 
     @staticmethod
     def _font_contains_character(font: skia.Font, character: str) -> bool:

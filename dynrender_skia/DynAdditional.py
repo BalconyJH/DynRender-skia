@@ -366,7 +366,7 @@ class DynAddVote(AbstractAdditional):
             self.canvas,
             self.additional.vote.desc,
             self.style.font.font_size.text,
-            (280, 110, 810, 110, 0),
+            (280, 110, 780, 110, 0),
             self.style.color.font_color.text,
         )
         if self.additional.vote.join_num is None:
@@ -378,7 +378,7 @@ class DynAddVote(AbstractAdditional):
             self.canvas,
             join_num,
             self.style.font.font_size.time,
-            (280, 190, 810, 190, 0),
+            (280, 190, 780, 190, 0),
             self.style.color.font_color.sub_title,
         )
 

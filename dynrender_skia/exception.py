@@ -25,3 +25,7 @@ class ImageDecodeError(SkiaBaseError):
 
 class DrawingError(SkiaBaseError):
     """Exception raised for errors during drawing operations."""
+
+
+class ParseError(SkiaBaseError):
+    """Exception raised for errors during parsing operations."""

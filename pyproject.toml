@@ -35,7 +35,7 @@ tool = [
 includes = ["dynrender_skia"]
 [tool.black]
 line-length = 120
-target-version = ["py39", "py310", "py311"]
+target-version = ["py39", "py310", "py311", "py312"]
 include = '\.pyi?$'
 extend-exclude = '''
 '''
@@ -97,8 +97,10 @@ executionEnvironments = [
 typeCheckingMode = "basic"
 reportShadowedImports = false
 disableBytesTypePromotions = true
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
 [pytest]
 asyncio_mode = "auto"

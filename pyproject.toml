@@ -1,6 +1,6 @@
 [project]
 name = "dynrender_skia"
-version = "0.2.7"
+version = "0.2.8"
 description = "使用skia-python将BiliBili动态渲染为图片"
 authors = [
     { name = "DMC", email = "lzxder@outlook.com" },
@@ -12,6 +12,7 @@ dependencies = [
     "emoji<3.0.0,>=2.6.0",
     "dynamicadaptor<1.0.0,>=0.4.9",
     "aiofiles~=23.2",
+    "tenacity>=8.4.1",
 ]
 requires-python = ">=3.9,<4.0"
 readme = "README.md"
@@ -24,6 +25,7 @@ test = [
     "pytest-cov~=4.1",
     "pytest-xdist~=3.5",
     "respx~=0.20",
+    "pytest-mock>=3.14.0",
 ]
 tool = [
     "viztracer~=0.16",
@@ -33,7 +35,7 @@ tool = [
 includes = ["dynrender_skia"]
 [tool.black]
 line-length = 120
-target-version = ["py39", "py310", "py311"]
+target-version = ["py39", "py310", "py311", "py312"]
 include = '\.pyi?$'
 extend-exclude = '''
 '''
@@ -95,8 +97,10 @@ executionEnvironments = [
 typeCheckingMode = "basic"
 reportShadowedImports = false
 disableBytesTypePromotions = true
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
 [pytest]
 asyncio_mode = "auto"

@@ -7,10 +7,10 @@
 """
 
 import json
-from os import getcwd, makedirs, path
-from typing import Optional, cast
 from collections.abc import Iterable
-from zipfile import ZipFile
+from os import getcwd, path
+from typing import Optional, cast
+from zipfile import ZipFile, BadZipFile
 
 import skia
 from loguru import logger
@@ -24,67 +24,101 @@ class MakeStaticFile:
 
     @property
     def check_cache_file(self) -> str:
-        """查询缓存文件是否存在"""
-        # 查询是否有data_path参数
-        # 没有的话静态文件目录就设置在程序的运行目录
-        # 当前文件所在的目录的路径
-        current_dir = path.dirname(path.abspath(__file__))
+        """Check if the cache file exists, creating necessary directories if needed."""
         if self.data_path is None:
-            # 确定程序的运行目录的路径
             program_running_path = getcwd()
-            # 静态文件的路径
-            static_path = path.join(program_running_path, "Static")
-            # 如果不存在静态目录将自带的压缩文件解压过去
-            if not path.exists(static_path):
-                logger.info("未检测到static目录")
-                self.unzip_file(
-                    "用户未传入data路径,将在程序运行目录创建static目录",
-                    "创建static目录中...",
-                    current_dir,
-                    program_running_path,
-                )
-                logger.info("static目录创建成功")
+            logger.info("No path provided; creating static directory in the program directory.")
+            static_path = self._ensure_static_directory(program_running_path)
         else:
-            # 设置静态文件的目录
-            static_path = path.join(self.data_path, "Static")
-            if not path.exists(self.data_path):
-                # 如果data_path不存在创建这个目录
-                makedirs(self.data_path)
-            if not path.exists(static_path):
-                self.unzip_file(
-                    "未检测到static目录",
-                    "使用用户传入路径创建static目录中...",
-                    current_dir,
-                    self.data_path,
-                )
-                logger.info("static目录创建成功")
+            logger.info("Path provided; creating static directory in the provided path.")
+            static_path = self._ensure_static_directory(self.data_path)
+
         font_cache_path = path.join(static_path, "font_family.json")
-        font_mgr = skia.FontMgr()
-        if not path.exists(font_cache_path):
-            logger.info("创建系统安装的所有字体的名称列表文件")
-            font_list = list(cast(Iterable[str], font_mgr))
-            with open(font_cache_path, "w") as f:
-                f.write(json.dumps(font_list, ensure_ascii=False))
-            logger.info("字体列表文件创建完成")
-            logger.info(f"文件存储于：{font_cache_path}")
-        else:
-            new_font_list = list(cast(Iterable[str], font_mgr))
-            with open(font_cache_path, "w+") as f:
-                if file_content := f.read():
-                    old_font_list = json.loads(file_content)
-                    if new_font_list != old_font_list:
-                        f.write(json.dumps(new_font_list, ensure_ascii=False))
-                else:
-                    f.write(json.dumps(new_font_list, ensure_ascii=False))
+        self._create_or_update_font_cache(font_cache_path)
 
         return static_path
 
+    def _ensure_static_directory(self, base_path: str) -> str:
+        """
+        Ensures the existence of a 'Static' directory at the specified base_path.
+        If the directory does not exist, it unzips the necessary files into it.
+        """
+        static_path = path.join(base_path, "Static")
+        if not path.exists(static_path):
+            logger.info("Static directory not detected.")
+            current_dir = path.dirname(path.abspath(__file__))
+            self.unzip_file(
+                current_dir,
+                base_path,
+            )
+            logger.info("Static directory successfully created.")
+        return static_path
+
     @staticmethod
-    def unzip_file(arg0, arg1, src_path, target_path):
-        logger.info(arg0)
-        logger.info(arg1)
-        file = ZipFile(path.join(src_path, "Static.zip"))
-        file.extractall(target_path)
+    def _create_or_update_font_cache(font_cache_path: str) -> None:
+        """
+        Creates or updates a JSON file listing all installed fonts on the system.
+        """
+        font_mgr = skia.FontMgr()
+        font_list = list(cast(Iterable[str], font_mgr))
+        logger.debug(f"Font list: {font_list}")
+
+        if not path.exists(font_cache_path):
+            with open(font_cache_path, "w", encoding="utf-8") as f:
+                json.dump(font_list, f, ensure_ascii=False)
+            logger.info(f"Font list cache saved at: {font_cache_path}")
+        else:
+            logger.debug(f"Font list cache already exists at: {font_cache_path}")
+            with open(font_cache_path, "r+", encoding="utf-8") as f:
+                if file_content := f.read():
+                    old_font_list = json.loads(file_content)
+                    if font_list != old_font_list:
+                        f.seek(0)
+                        json.dump(font_list, f, ensure_ascii=False)
+                        f.truncate()  # Truncate the file to the current position
+                        logger.info("Font list cache updated successfully.")
+
+                else:
+                    json.dump(font_list, f, ensure_ascii=False)
+                    logger.info("Font list cache created successfully.")
+
+    @staticmethod
+    def unzip_file(src_path: str, target_path: str) -> None:
+        """
+        Extracts the contents of a ZIP file located in the specified source path to the target path.
+
+        Args:
+            src_path (str): The directory path where the ZIP file ("Static.zip") is located.
+            target_path (str): The directory path where the contents of the ZIP file will be extracted.
+
+        Returns:
+            None
+
+        Raises:
+            FileNotFoundError: If the ZIP file does not exist at the specified source path.
+            BadZipFile: If the ZIP file is corrupt or unreadable.
+            PermissionError: If there are permission issues while accessing the paths.
+        """
+        zip_file_path = path.join(src_path, "Static.zip")
+
+        try:
+            if not path.isfile(zip_file_path):
+                logger.error(f"ZIP file not found at path: {zip_file_path}")
+                raise FileNotFoundError(f"ZIP file not found at path: {zip_file_path}")
+
+            with ZipFile(zip_file_path, "r") as zip_file:
+                zip_file.extractall(target_path)
+                logger.info(f"Successfully extracted ZIP file to {target_path}")
+
+        except BadZipFile:
+            logger.error(f"Bad ZIP file or corrupt file at path: {zip_file_path}")
+            raise
+        except PermissionError as e:
+            logger.error(f"Permission denied while accessing {zip_file_path} or {target_path}: {e}")
+            raise
+        except Exception as e:
+            logger.exception(f"An unexpected error occurred during extraction: {e}")
+            raise
 
 
 class SetDynStyle:
@@ -136,8 +170,3 @@ class SetDynStyle:
             "BoldItalic": skia.FontStyle().BoldItalic(),
         }
         return style_map.get(self.font_style, skia.FontStyle().Normal())
-
-
-# if __name__ == "__main__":
-#     a = SetDynStyle("Noto Sans CJK SC","Normal").set_style
-#     print(a.color.backgroud.repost)

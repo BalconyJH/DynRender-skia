@@ -154,6 +154,20 @@ async def paste(canvas: skia.Canvas, target: skia.Image, position: tuple, clear_
         logger.exception(f"Failed to paste image: {e!s}")
 
 
+async def draw_shadow(canvas, pos: tuple, corner: int, bg_color):
+    x, y, width, height = pos
+    rec = skia.Rect.MakeXYWH(x, y, width, height)
+    paint = skia.Paint(
+        Color=skia.Color(*bg_color),
+        AntiAlias=True,
+        ImageFilter=skia.ImageFilters.DropShadow(0, 0, 10, 10, skia.Color(120, 120, 120)),
+    )
+    if corner != 0:
+        canvas.drawRoundRect(rec, corner, corner, paint)
+    else:
+        canvas.drawRect(rec, paint)
+
+
 class DrawText:
     def __init__(self, style: PolyStyle):
         self.style = style

@@ -6,7 +6,6 @@ import asyncio
 from os import path
 from typing import Optional
 
-import emoji
 import numpy as np
 import skia
 from dynamicadaptor.Content import Text
@@ -66,7 +65,7 @@ class BiliText:
             elif i.type != "RICH_TEXT_NODE_TYPE_TEXT":
                 rich_list.append(i)
         result = await asyncio.gather(self.get_emoji(emoji_list, emoji_name_list), self.get_rich_pic(rich_list))
-        await self.draw_text(result[1], dyn_text) # type: ignore
+        await self.draw_text(result[1], dyn_text)  # type: ignore
         if self.offset != 40:
             self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
 
@@ -91,10 +90,6 @@ class BiliText:
                     result[i].save(emoji_path)
         temp = {j: emoji_pic[i] for i, j in enumerate(emoji_name)}
         self.emoji_dict = temp
-
-    async def get_emoji_text(self, text: str):
-        result = emoji.emoji_list(text)
-        return {i["match_start"]: [i["match_end"], i["emoji"]] for i in result}
 
     async def get_rich_pic(self, rich_list):
         rich_dic = {}
@@ -155,7 +150,7 @@ class BiliText:
 
     async def draw_text(self, rich_list: list, dyn_text: Text):
         self.canvas.clear(skia.Color(*self.bg_color))
-        for i in dyn_text.rich_text_nodes: # type: ignore
+        for i in dyn_text.rich_text_nodes:  # type: ignore
             if i.type in {
                 "RICH_TEXT_NODE_TYPE_AT",
                 "RICH_TEXT_NODE_TYPE_TEXT",
@@ -173,10 +168,10 @@ class BiliText:
 
     async def draw_plain_text(self, dyn_detail, color):
         font = None
-        e=False
+        e = False
         dyn_detail = dyn_detail.translate(str.maketrans({"\r": ""}))
         paint = skia.Paint(AntiAlias=True, Color=color)
-        emoji_info = await self.get_emoji_text(dyn_detail)
+        emoji_info = await DrawText.get_emoji_text(dyn_detail)
         total = len(dyn_detail) - 1
         offset = 0
         while offset <= total:
@@ -193,11 +188,11 @@ class BiliText:
                 j = emoji_info[offset][1]
                 offset = emoji_info[offset][0]
                 font = self.emoji_font
-                e=True
+                e = True
             else:
                 offset += 1
                 font = self.text_font
-                e=False
+                e = False
             if font.textToGlyphs(j)[0] == 0:
                 if typeface := skia.FontMgr().matchFamilyStyleCharacter(
                     self.style.font.font_family,
@@ -217,12 +212,14 @@ class BiliText:
                 blob = skia.TextBlob.MakeFromShapedText(j, font)
                 self.canvas.drawTextBlob(blob, self.offset, 5, paint)
             self.offset += measure
-            if self.offset > self.x_bound:
-                self.offset = 40
-                self.canvas.saveLayer()
-                self.canvas.clear(skia.Color(*self.bg_color))
-                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
-                self.canvas.restore()
+            self.offset = await self._handle_boundary_overflow(
+                canvas=self.canvas,
+                offset=self.offset,
+                x_bound=self.x_bound,
+                bg_color=self.bg_color,
+                image_list=self.image_list,
+                reset_offset=40,
+            )
 
     async def draw_emoji(self, emoji_detail):
         img = self.emoji_dict[emoji_detail]
@@ -230,12 +227,14 @@ class BiliText:
             img_size = img.dimensions().width()
             await paste(self.canvas, img, (int(self.offset), 0))
             self.offset += img_size + 5
-            if self.offset >= self.x_bound:
-                self.canvas.saveLayer()
-                self.canvas.clear(skia.Color(*self.bg_color))
-                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
-                self.canvas.restore()
-                self.offset = 40
+            self.offset = await self._handle_boundary_overflow(
+                canvas=self.canvas,
+                offset=self.offset,
+                x_bound=self.x_bound,
+                bg_color=self.bg_color,
+                image_list=self.image_list,
+                reset_offset=40,
+            )
 
     async def draw_rich_text(self, text_detail, rich_list):
         if text_detail.type == "RICH_TEXT_NODE_TYPE_VOTE":
@@ -276,9 +275,52 @@ class BiliText:
             blob = skia.TextBlob(i, font)
             self.canvas.drawTextBlob(blob, self.offset, 50, paint)
             self.offset += font.measureText(i)
-            if self.offset >= self.x_bound:
-                self.canvas.saveLayer()
-                self.canvas.clear(skia.Color(*self.bg_color))
-                self.image_list.append(self.canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
-                self.canvas.restore()
-                self.offset = 40
+            self.offset = await self._handle_boundary_overflow(
+                canvas=self.canvas,
+                offset=self.offset,
+                x_bound=self.x_bound,
+                bg_color=self.bg_color,
+                image_list=self.image_list,
+                reset_offset=40,
+            )
+
+    @staticmethod
+    async def _handle_boundary_overflow(
+        canvas: skia.Canvas,
+        offset: int,
+        x_bound: int,
+        bg_color: tuple[int, int, int, int],
+        image_list: list,
+        reset_offset: int = 40,
+    ) -> int:
+        """
+        Handles the logic when the drawing position exceeds the specified width boundary.
+
+        This method checks if the current drawing offset exceeds the x-axis boundary (`x_bound`).
+        If it does, the method saves the current canvas layer, clears it with the specified
+        background color (`bg_color`), appends the current canvas content to `image_list`,
+        and restores the canvas. It then resets the drawing offset to a specified value (`reset_offset`).
+
+        Args:
+            canvas (skia.Canvas): The canvas object where drawing operations are performed.
+            offset (int): The current drawing offset along the x-axis.
+            x_bound (int): The maximum width boundary for drawing before a reset is needed.
+            bg_color (tuple[int, int, int, int]): The background color (RGBA) used to clear the canvas.
+            image_list (list): A list to store each canvas layer as an image array.
+            reset_offset (int, optional): The x-axis offset reset value after exceeding the boundary. Defaults to 40.
+
+        Usage:
+        ```python
+        offset = await self._handle_boundary_overflow(canvas, offset, x_bound, bg_color, image_list, reset_offset)
+        ```
+
+        Returns:
+            int: The updated offset value, either the reset offset or the original offset if within bounds.
+        """
+        if offset >= x_bound:
+            canvas.saveLayer()
+            canvas.clear(skia.Color(*bg_color))
+            image_list.append(canvas.toarray(colorType=skia.ColorType.kRGBA_8888_ColorType))
+            canvas.restore()
+            return reset_offset
+        return offset

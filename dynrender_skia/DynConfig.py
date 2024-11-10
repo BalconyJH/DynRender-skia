@@ -1,11 +1,3 @@
-"""
-@File    :   DynConfig.py
-@Time    :   2023/07/13 14:20:02
-@Author  :   Polyisoprene
-@Version :   1.0
-@Desc    :   None
-"""
-
 import json
 from collections.abc import Iterable
 from os import getcwd, path
@@ -122,6 +114,18 @@ class MakeStaticFile:
 
 
 class SetDynStyle:
+    """
+    Set the style of the dynamic rendering.
+
+    Args:
+        font_family (str): Font family name like "Noto Sans CJK SC".
+        emoji_font_family (str): Emoji font family name like "Noto Color Emoji".
+        font_style (str): Font style like "Normal、Bold、Italic、BoldItalic".
+
+    Returns:
+        PolyStyle: A Pydantic model containing the font and color configurations.
+    """
+
     def __init__(self, font_family: str, emoji_font_family: str, font_style: str) -> None:
         self.font_family = font_family
         self.font_style = font_style
@@ -129,6 +133,12 @@ class SetDynStyle:
 
     @property
     def set_style(self) -> PolyStyle:
+        """
+        Set the style of the dynamic rendering.
+
+        Returns:
+            PolyStyle: A Pydantic model containing the font and color configurations.
+        """
         cfg_obj = {
             "color": {
                 "font_color": {
@@ -162,7 +172,13 @@ class SetDynStyle:
 
         return PolyStyle(**cfg_obj)
 
-    def get_font_style(self):
+    def get_font_style(self) -> skia.FontStyle:
+        """
+        Returns the skia.FontStyle object based on the font style string.
+
+        Returns:
+            skia.FontStyle: The skia.FontStyle object corresponding to the font style string
+        """
         style_map = {
             "Normal": skia.FontStyle().Normal(),
             "Bold": skia.FontStyle().Bold(),
